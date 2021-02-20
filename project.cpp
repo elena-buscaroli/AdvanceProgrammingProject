@@ -4,6 +4,7 @@
 #include <iterator>
 
 //g++ -std=c++14 project.cpp
+//g++ -std=c++14 project.cpp
 
 
 template < typename T >
