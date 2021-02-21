@@ -350,7 +350,11 @@ class bst{
 			node_t* n{_find(x)};  // if found, returns an iterator to the node
 			if(!n) { return; }  // if the key is not found find returns nullptr
 
+			std::cout << "prova" << std::endl;
+
 			if( !(n->left) && !(n->right) ) {  // if leaf node
+				std::cout << "LEAF NODE" << std::endl;
+
 				if( !(n == r) ) {
 					if( n == n->parent->left.get() ) { n->parent->left.reset(nullptr); }
 					if( n == n->parent->right.get() ) { n->parent->right.reset(nullptr); }
@@ -358,11 +362,11 @@ class bst{
 				else { 
 					r = nullptr; 
 				}
-
 				// free(n);
 			}
 
-			else if( r->left && r->right ) {
+			else if( n->left && n->right ) {
+				std::cout << "TWO CHILDREN NODES" << std::endl;
 				node_t* in = _inorder(n->right.get());
 				auto v = in->value.first;
 				_erase(r, in->value.first);
@@ -370,19 +374,45 @@ class bst{
 			}
 
 			else {  // only one child
-				std::cout << "prova" << std::endl;
+				std::cout << "prova1" << std::endl;
 				
-				if( !(n==r) ) {
-					if( n->parent->left.get() == n ) { n->parent->left = std::make_unique<node_t> (n->left); }
-					else { n->parent->right = std::make_unique<node_t> (n->right); }
-				}
-
-				else{
+				if( n==r ) {
 					// r = nullptr;
 					std::cout << "prova" << std::endl;
+					n->right->parent = nullptr;
 					r = new node_t{n->right};
 					std::cout << r->value.first << std::endl;
-					std::cout << r->right->value.first << std::endl;
+					// std::cout << n->right->value.first << std::endl;
+					// std::cout << n->right->parent->value.first << std::endl;
+				}
+
+				else {
+					if( n->parent->left.get() == n ) {
+						n->parent->left.release();
+
+						if( n->left ) { 
+							n->left->parent = n->parent;
+							n->parent->left.reset(n->left.release()); 
+						}
+						else { 
+							n->right->parent = n->parent;
+							n->parent->left.reset(n->right.release());
+						}
+					}
+
+					else {  // if ( n->parent->right.get() == n ) {
+						std::cout << "prova" << std::endl;
+						n->parent->right.release();
+
+						if( n->left ) { 
+							n->left->parent = n->parent;
+							n->parent->right.reset(n->left.release()); 
+						}
+						else { 
+							n->right->parent = n->parent;
+							n->parent->right.reset(n->right.release()); 
+						}
+					}
 				}
 				// free(n);
 			}
@@ -602,41 +632,41 @@ int main(){
 	using node_t = node<type>;
 
 	bst<int,int> tree{};
-	tree.insert(p);
-	tree.insert(std::pair<int, int> {2,12});
-	tree.insert(std::pair<int, int> {6,12});
-	tree.insert(std::pair<int, int> {3,12});
+	// tree.insert(p);
+	// tree.insert(std::pair<int, int> {2,12});
+	// tree.insert(std::pair<int, int> {6,12});
+	// tree.insert(std::pair<int, int> {3,12});
 	// std::cout << tree.root << std::endl;
 	// tree.find(6);
 
-	bst<int, int> t1{tree};
+	// bst<int, int> t1{tree};
 	// std::cout << tree.root->value.first << std::endl;
 
-	t1.insert(std::pair<int, int> {5,12});
-	t1.insert(std::pair<int, int> {7,12});
+	// t1.insert(std::pair<int, int> {5,12});
+	// t1.insert(std::pair<int, int> {7,12});
 	// tree.insert(std::pair<int, int> {10,12});
-	std::cout << t1 << std::endl;
+	// std::cout << t1 << std::endl;
 
-	t1.erase(1);
-	std::cout << t1 << std::endl;
+	// t1.erase(3);
+	// std::cout << t1 << std::endl;
 	
 	// auto c = t1._find(3);
 	// std::cout << c->value.first << '\n';
 
-	// tree.insert(std::pair<int, int> {8,12}); //root
-	// tree.insert(std::pair<int, int> {3,12}); //left
-	// tree.insert(std::pair<int, int> {10,12}); //right
-	// tree.insert(std::pair<int, int> {6,12}); //right 
-	// tree.insert(std::pair<int, int> {1,12}); //left
-	// tree.insert(std::pair<int, int> {14,12}); //right
-	// tree.insert(std::pair<int, int> {13,12}); //left
-	// tree.insert(std::pair<int, int> {4,12}); //left
-	// tree.insert(std::pair<int, int> {7,12}); //right
-	// tree.insert(std::pair<int, int> {5,12}); //right
+	tree.insert(std::pair<int, int> {8,12}); //root
+	tree.insert(std::pair<int, int> {3,12}); //left
+	tree.insert(std::pair<int, int> {10,12}); //right
+	tree.insert(std::pair<int, int> {6,12}); //right 
+	tree.insert(std::pair<int, int> {1,12}); //left
+	tree.insert(std::pair<int, int> {14,12}); //right
+	tree.insert(std::pair<int, int> {13,12}); //left
+	tree.insert(std::pair<int, int> {4,12}); //left
+	tree.insert(std::pair<int, int> {7,12}); //right
+	tree.insert(std::pair<int, int> {5,12}); //right
 
-	// std::cout << tree << std::endl;
-	// tree.erase(8);
-	// std::cout << tree << std::endl;
+	std::cout << tree << std::endl;
+	tree.erase(4);
+	std::cout << tree << std::endl;
 
 	return 0;
 }
