@@ -74,6 +74,8 @@ class _iterator {
 
 		//pre-increment operator
 		_iterator &operator++() {
+			// if( !(current->parent) ) { return *this; }
+
 			if(current->right) { //if !=nullptr 
 				current = current->right.get();
 				while(current->left){
@@ -134,7 +136,7 @@ class bst{
 		// if (n){
 		// 	 return std::make_pair(n, false);
 		// }
-		auto tmp=root.get();
+		auto tmp = root.get();
 		while(tmp) {  //(op(tmp->value.first, x.first) || op(x.first,tmp->value.first)){ //scegliere altra guardia facile tipo tmp 
 			if (op(tmp->value.first, x.first)){ //my key > root
 				if (tmp->right){
@@ -157,7 +159,7 @@ class bst{
 				}
 			}
 		}
-		root = std::make_unique<node_t>(std::forward<O>(x),nullptr); //qui il parent sarebbe nullptr
+		root = std::make_unique<node_t> (std::forward<O>(x), nullptr); //qui il parent sarebbe nullptr
 		std::cout<<"make root \n";
 		return std::make_pair(iterator{root.get()}, true);
 	}
@@ -344,9 +346,8 @@ class bst{
 
 		// erase
 		
-		void _erase(node_t* r, const key_type& x) {
-			// node_t* par = nullptr;
-			// node_t* curr = r;
+		void _erase(const key_type& x) {
+
 			node_t* n{_find(x)};  // if found, returns an iterator to the node
 			if(!n) { return; }  // if the key is not found find returns nullptr
 
@@ -355,39 +356,74 @@ class bst{
 			if( !(n->left) && !(n->right) ) {  // if leaf node
 				std::cout << "LEAF NODE" << std::endl;
 
-				if( !(n == r) ) {
-					if( n == n->parent->left.get() ) { n->parent->left.reset(nullptr); }
-					if( n == n->parent->right.get() ) { n->parent->right.reset(nullptr); }
+				if( !(n == root.get()) ) {
+					if( n == n->parent->left.get() ) { 
+						n->parent->left.reset(nullptr);
+						n->parent = nullptr;
+					}
+					if( n == n->parent->right.get() ) { 
+						n->parent->right.reset(nullptr); 
+						n->parent = nullptr;
+					}
 				}
 				else { 
-					r = nullptr; 
+					// r = nullptr; 
+					root.reset(nullptr);
 				}
-				// free(n);
 			}
 
 			else if( n->left && n->right ) {
-				std::cout << "TWO CHILDREN NODES" << std::endl;
+				std::cout << "\n\nTWO CHILDREN NODES" << std::endl;
 				node_t* in = _inorder(n->right.get());
-				auto v = in->value.first;
-				_erase(r, in->value.first);
-				n = new node_t{in->value, n->right.get(), n->left.get(), n->parent};
+				auto v = in->value;
+				bool left = false;
+
+				std::cout << "in " << in->value.first << std::endl;
+				std::cout << "roor " << root->value.first << '\n' << std::endl;
+
+				_erase(in->value.first);
+
+				if( n == root.get() ) {
+					root.release();
+					n = new node_t{v, n->right.get(), n->left.get(), n->parent};
+					root.reset(n);
+					if(n->left) { n->left->parent = n; }
+					if(n->right) { n->right->parent = n; }
+				}
+
+				else {
+					if( n->parent->left.get() == n ) { left = true; n->parent->left.release(); }
+					else { n->parent->right.release(); }
+
+					n = new node_t{v, n->right.get(), n->left.get(), n->parent};
+
+					if(n->left) { n->left->parent = n; }
+					if(n->right) { n->right->parent = n; }
+
+					if( left ) { n->parent->left.reset(n); }
+					else { n->parent->right.reset(n); }
+				}
 			}
 
 			else {  // only one child
-				std::cout << "prova1" << std::endl;
-				
-				if( n==r ) {
-					// r = nullptr;
-					std::cout << "prova" << std::endl;
-					n->right->parent = nullptr;
-					r = new node_t{n->right};
-					std::cout << r->value.first << std::endl;
-					// std::cout << n->right->value.first << std::endl;
-					// std::cout << n->right->parent->value.first << std::endl;
+				std::cout << "ONLY ONE CHILD NODE" << std::endl;
+				if( n == root.get() ) {
+					std::cout << "Root node" << std::endl;
+					if(n->right) {
+						n->right->parent = nullptr;
+						auto m = n->right.release();
+						root.reset(m);
+					}
+					else {
+						n->right->parent = nullptr;
+						auto m = n->left.release();
+						root.reset(m);
+					}
 				}
 
 				else {
 					if( n->parent->left.get() == n ) {
+						std::cout << "left node" << std::endl;
 						n->parent->left.release();
 
 						if( n->left ) { 
@@ -400,8 +436,8 @@ class bst{
 						}
 					}
 
-					else {  // if ( n->parent->right.get() == n ) {
-						std::cout << "prova" << std::endl;
+					else {  // if ( n->parent->right.get() == n )
+						std::cout << "right node" << std::endl;
 						n->parent->right.release();
 
 						if( n->left ) { 
@@ -414,245 +450,54 @@ class bst{
 						}
 					}
 				}
-				// free(n);
 			}
 		}
 
 		void erase(const key_type& x) {
-			_erase(root.get(), x);
+			_erase(x);
 			return;
 		}
 
-		// void erase(const key_type& x) {
-		// 	if(!root) { return; }  // if there is no a root
-		// 	node_t* n{_find(x)};  // if found, returns an iterator to the node
-		// 	if(!n) { return; }  // if the key is not found find returns nullptr
-		// 	if( !(n->left) && !(n->right) ) {  // if leaf node
-		// 		if( !(n == root.get()) ) {
-		// 			if( n == n->parent->left.get() ) { n->parent->left.reset(nullptr); }
-		// 			if( n == n->parent->right.get() ) { n->parent->right.reset(nullptr); }
-		// 		}
-		// 		else { root.reset(nullptr); }
-		// 	}
-		// 	else if( n->left && n->right ) {  // if two children nodes
-		// 		node_t* in = _inorder(n->right.get());
-		// 		auto v = in->value;
-		// 		std::cout << "n " << n->value.first << " - in " << in->value.first << std::endl;
-		// 		std::cout << "n->right " << n->right->value.first << " - n->left " << n->left->value.first << '\n' << std::endl;
-		// 		if( !(in==root.get()) && in == in->parent->left.get() ) { 
-		// 			if( in->right ) { in->parent->left = std::make_unique<node_t> (in->right); }
-		// 			else if( in->left ) { in->parent->left = std::make_unique<node_t> (in->left); }
-		// 		}
-		// 		else if( !(in==root.get()) && in == in->parent->right.get() ) {
-		// 			if( in->right ) { in->parent->right = std::make_unique<node_t> (in->right); }
-		// 			else if( in->left ) { in->parent->right = std::make_unique<node_t> (in->left); }
-		// 		}
-		// 		std::cout << "n->right " << n->right->value.first << " - n->left " << n->left->value.first << '\n' << std::endl;
-		// 		if( !(n->right.get() == in) && !(n->left.get() == in) ) { n = new node_t{in->value, n->right.get(), n->left.get(), n->parent}; }
-		// 		else if( n->right.get() == in ) {
-		// 			n->parent->right = std::make_unique<node_t> (n->right);
-		// 			n = new node_t{in->value, nullptr, n->left.get(), n->parent}; 
-		// 		}
-		// 		else if( n->left.get() == in ) { 
-		// 			n->parent->left = std::make_unique<node_t> (n->left);
-		// 			n = new node_t{in->value, n->right.get(), nullptr, n->parent};
-		// 		}
-		// 	}
-		// 	// n has only one child node
-		// 	else if( ((n->right) && !(n->left)) || (!(n->right) && (n->left)) ) {
-		// 		node_t* child;
-		// 		if( !(n == root.get()) ) {
-		// 			if( n == n->parent->left.get() ) {  // if n is a left node
-		// 				if(n->left) {
-		// 					child = new node_t{n->left->value, nullptr, nullptr, n->parent};
-		// 					n->parent->left.reset(child);
-		// 					// n->parent->left = child;
-		// 					// n->parent->left = std::make_unique<node_t> (n->left);
-		// 					// n->left->parent = n->parent;
-		// 					// n->left.release();
-		// 				}
-		// 				else {  // if n->right exists
-		// 					child = new node_t{n->right->value, nullptr, nullptr, n->parent};
-		// 					n->parent->right.reset(child);
-		// 					// n->parent->left = std::make_unique<node_t> (n->right);
-		// 					// n->right->parent = n->parent;
-		// 					// n->parent = nullptr;
-		// 					// n->right.release();
-		// 				}
-		// 			}
-		// 			if( n == n->parent->right.get() ) {  // if n is a right node
-		// 				if(n->left) {  // if n->left exists
-		// 					n->parent->right = std::make_unique<node_t> (n->left);
-		// 					n->left.release();
-		// 				}
-		// 				else {  // if n->right exists
-		// 					n->parent->right = std::make_unique<node_t> (n->right);
-		// 					n->right.release();
-		// 				}
-		// 				return;
-		// 			}
-		// 		}
-		// 		else {
-		// 			root.release();
-		// 			if( n->right ) { root.reset(new node_t{n->right}); }
-		// 			if( n->left ) { root.reset(new node_t{n->left}); }
-		// 			return;
-		// 		}
-		// 	}
-		// }
 }; // end bst class
-
-
-
-// template < typename value_type, typename key_type, typename cmp_op=std::less<key_type> >
-// node* bst< value_type, key_type, cmp_op >::inorder(const node* x) {
-// 	while(x->left){
-// 		x = x->left:
-// 	}
-// 	return x;
-// }
-
-// template < typename value_type, typename key_type, typename cmp_op=std::less<key_type> >
-// void bst< value_type, key_type, cmp_op >::erase(const key_type& x) {
-// 	if(!root) { return; }  // if there is no a root
-
-// 	node_t* n{_find(x)};  // if found, returns an iterator to the node
-
-// 	if(!n) { return; }  // if the key is not found find returns nullptr
-
-// 	// n is a leaf -> reset the node to nullptr
-// 	if( !(n->right) && !(n->left) ) {
-// 		if( n == n->parent->left.get() ) { n->parent->left.reset(nullptr); }
-// 		if( n == n->parent->right.get() ) { n->parent->right.reset(nullptr); }
-// 		n.reset(nullptr); 
-// 	}
-
-// 	// n is the root -> not necessary?
-// 	if(n == root.get()) {
-// 		root.relase();  // root releases the ownership
-// 		if( !(n->right->left) && (n->right->right) ) {  // if right node does not have a left node it becomes the root
-// 			n->right->left.reset(n->left);
-// 			n->right->parent = nullptr;
-// 		}
-// 		else if( !(n->left->right) && (n->left->left) ) {  // if left node does not have a right node it becomes the root
-// 			n->left->right.reset(n->right);
-// 			n->left->parent = nullptr;
-// 		}
-// 	}
-
-// 	// if n has two children nodes
-// 	if( n->left && n->right ) {  // if both right and left have two children nodes
-// 		auto in = inorder(n->right);  // to find the minimum element in the right subtree of n
-// 		n->value = in->value;  // copy the value of the inorder element in n
-// 		in->parent->left.release();
-// 		in.reset(nullptr);  // remove the "in" node
-// 	}
-
-// 	// n has only one child node
-// 	if( ((n->right) && !(n->left)) || (!(n->right) && (n->left)) ) {
-// 		if( n == n->parent->left.get() ) {  // if n is a left node
-// 			if(n->left) {  // if n->left exists
-// 				n->parent->left.reset(n->left);
-// 				n->left.release();
-// 			}
-// 			if(n->right) {  // if n->right exists
-// 				n->parent->left.reset(n->right);
-// 				n->right.release();
-// 			}
-// 		}
-
-// 		if( n == n->parent->right.get() ) {  // if n is a right node
-// 			if(n->left) {  // if n->left exists
-// 				n->parent->right.reset(n->left);
-// 				n->left.release();
-// 			}
-// 			if(n->right) {  // if n->right exists
-// 				n->parent->right.reset(n->right);
-// 				n->right.release();
-// 			}
-// 		}
-// 	}
-// }
-
-
-
-
-// // Find a given key. If the key is present, returns an iterator to the proper node, end() otherwise.
-// // the tree is ordered by keys
-// template < typename value_type, typename key_type, typename cmp_op=std::less<key_type> >
-// template < typename O >
-// O bst< value_type, key_type, cmp_op >::find(const key_type& x) {
-// 	cmp_op op;
-
-// 	if(!root)
-// 		return O{nullptr};
-
-// 	if(root->value.first == x) { return O{root}}
-// 	else if(op(root->value.first, x)) {  // True if the first element is smaller than the second one
-// 		auto tmp{*this};
-// 		while(op(tmp->value.first, x)) {  // until all the elements are lower than x
-// 			++tmp;
-// 		}
-
-// 		if(tmp->value.first == x) { return O{tmp}; }
-// 		else { return end(); }
-// 	}
-
-// 	else {
-// 		O tmp = begin();  // in this case tmp is an iterator or const_iterator
-// 		while(op(x, tmp->value.first)) {  // until all the elements are lower than k
-// 			++tmp;
-// 		}
-
-// 		if(tmp->value.first == x) { return tmp; }
-// 		else { return end(); }
-// 	}
-// }
 
 
 
 
 int main(){
 
-	// using type = std::pair<int, int>;
-
-	// const std::pair<int, int> p(1, 10);
-	// // node<type> n{}; //creation
-	// node<type> n1{(std::pair<int, int>(1, 10))}; //rvalue 1
-	// node<type> n2{p}; //lvalue 1 
-
-	// std::pair<int, int> p(1, 10);
-
-	// node<std::pair<int, int>> n1{};
-	// node<std::pair<int, int>> n2{p};
-	// node<std::pair<int, int>> n3{std::pair<int, int> {10,12}};
-
 	using type = std::pair<int, int>;
 	std::pair<int, int> p{1, 10};
 	using node_t = node<type>;
 
-	bst<int,int> tree{};
-	// tree.insert(p);
+
+// EXAMPLE 1
+	// bst<int,int> tree{};
+	// tree.insert(std::pair<int, int> {1,12});
+	// tree.insert(std::pair<int, int> {2,12});
+
+	// std::cout << tree << std::endl;
+
+	// tree.erase(1);
+	// std::cout << tree << std::endl;
+
+
 	// tree.insert(std::pair<int, int> {2,12});
 	// tree.insert(std::pair<int, int> {6,12});
 	// tree.insert(std::pair<int, int> {3,12});
-	// std::cout << tree.root << std::endl;
 	// tree.find(6);
 
 	// bst<int, int> t1{tree};
-	// std::cout << tree.root->value.first << std::endl;
 
 	// t1.insert(std::pair<int, int> {5,12});
 	// t1.insert(std::pair<int, int> {7,12});
 	// tree.insert(std::pair<int, int> {10,12});
 	// std::cout << t1 << std::endl;
 
-	// t1.erase(3);
+	// t1.erase(1);
 	// std::cout << t1 << std::endl;
-	
-	// auto c = t1._find(3);
-	// std::cout << c->value.first << '\n';
 
+// EXAMPLE 2
+	bst<int,int> tree{};
 	tree.insert(std::pair<int, int> {8,12}); //root
 	tree.insert(std::pair<int, int> {3,12}); //left
 	tree.insert(std::pair<int, int> {10,12}); //right
@@ -665,7 +510,7 @@ int main(){
 	tree.insert(std::pair<int, int> {5,12}); //right
 
 	std::cout << tree << std::endl;
-	tree.erase(4);
+	tree.erase(5);
 	std::cout << tree << std::endl;
 
 	return 0;
