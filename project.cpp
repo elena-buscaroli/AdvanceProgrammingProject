@@ -4,7 +4,6 @@
 #include <iterator>
 #include <vector>
 
-//g++ -std=c++14 project.cpp
 
 template < typename T >
 struct node{
@@ -16,13 +15,13 @@ struct node{
 
 	node() {};
 
-	explicit node(const T& x): right{nullptr}, left{nullptr}, value{x} {std::cout << "l-value 1\n";}
-	node(const T& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{x} {std::cout << "l-value 2\n";}
-	node(const T& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{x} {std::cout << "l-value 3\n";}
+	explicit node(const T& x): right{nullptr}, left{nullptr}, value{x} {std::cout << " (l-value 1) ";}
+	node(const T& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{x} {std::cout << " (l-value 2) ";}
+	node(const T& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{x} {std::cout << " (l-value 3) ";}
 
-	explicit node(T&& x): right{nullptr}, left{nullptr}, value{std::move(x)} {std::cout << "r-value 1\n";}
-	node(T&& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{std::move(x)} {std::cout << "r-value 2\n";}
-	node(T&& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{std::move(x)} {std::cout << "r-value 3\n";}
+	explicit node(T&& x): right{nullptr}, left{nullptr}, value{std::move(x)} {std::cout << " (r-value 1) ";}
+	node(T&& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{std::move(x)} {std::cout << " (r-value 2) ";}
+	node(T&& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{std::move(x)} {std::cout << " (r-value 3) ";}
 
 	explicit node(const std::unique_ptr<node>& x, node* p=nullptr): parent{p}, value{x->value}{ //this is used for the copy constructor of the bst 
 		if(x->right)
@@ -93,15 +92,16 @@ class bst{
 	using iterator = _iterator< node_t , pair_type > ;
 	using const_iterator = _iterator< node_t , const pair_type > ;
 
+	// public:
 	std::unique_ptr<node_t> root;
 	cmp_op op;
+
+	// private:
 
 	// _find function
 	node_t* _find(const key_type& x) {
 		if(!root) { return nullptr; }
-
 		node_t* tmp = root.get();
-
 		while(tmp) {
 			if(tmp->value.first == x) { return tmp; }
 			else if( op(x, tmp->value.first) ) { tmp = tmp->left.get(); }  // if x smaller than tmp
@@ -114,38 +114,30 @@ class bst{
 	// _insert function
 	template <typename O>
 	std::pair<iterator, bool> _insert( O&& x){
-			node_t* n{_find(x.first)};
-			if (n){ //if n != nullptr 
-				std::cout << "already there \n";
-					return std::make_pair(iterator{n}, false);
-			}
+		node_t* n{_find(x.first)};
+		if (n) { return std::make_pair(iterator{n}, false); }
+
 		auto tmp = root.get();
 		while(tmp) {  //(op(tmp->value.first, x.first) || op(x.first,tmp->value.first)){ 
 			if( op(tmp->value.first, x.first) ){ //my key > root
-				if (tmp->right) {
-					tmp = tmp->right.get();
-				}
+				if (tmp->right) { tmp = tmp->right.get(); }
 				else {
 					tmp->right = std::make_unique<node_t> (std::forward<O>(x), tmp); //tmp is the parent
-					std::cout << "make node right \n";
 					return std::make_pair(iterator{tmp->right.get()}, true); 
 				}
 			}
 			if( op(x.first,tmp->value.first) ){ //my key < root 
-				if(tmp->left){
-					tmp = tmp->left.get();
-				}
+				if(tmp->left){ tmp = tmp->left.get(); }
 				else{
 					tmp->left = std::make_unique<node_t> (std::forward<O>(x), tmp); //tmp is the parent
-					std::cout << "make node left \n";
 					return std::make_pair(iterator{tmp->left.get()}, true); 
 				}
 			}
 		}
 		root = std::make_unique<node_t> (std::forward<O>(x), nullptr); //qui il parent sarebbe nullptr
-		std::cout << "make root \n";
 		return std::make_pair(iterator{root.get()}, true);
 	}
+
 
 	// _inorder function
 	node_t* _inorder(node_t* x) {
@@ -241,13 +233,13 @@ class bst{
 
 		// subscripting operator
 		value_type& operator[](const key_type& x) {
-			value_type v{};
+			value_type v;
 			auto i = insert(std::pair<key_type,value_type>(x, v)); // iterator pointing to node + bool 
 			return (*i.first).second;
 		 }
 
 		value_type& operator[](key_type&& x) {
-			value_type v{};
+			value_type v;
 			auto i = insert(std::pair<key_type,value_type>(x, v)); // iterator pointing to node + bool 
 			return (*i.first).second;
 		 }
@@ -284,7 +276,7 @@ class bst{
 			}
 
 			else if( n->left && n->right ) {
-				std::cout << "\n\nTWO CHILDREN NODES" << std::endl;
+				std::cout << "TWO CHILDREN NODES" << std::endl;
 				node_t* in = _inorder(n->right.get());
 				auto v = in->value;
 				bool left = false;
@@ -365,35 +357,25 @@ class bst{
 
 int main(){
 
-	// using type = std::pair<int, int>;
-	// std::pair<int, int> p{1, 10};
-	// using node_t = node<type>;
-
-
 // EXAMPLE 1
-	bst<int,int> tree{};
-	// tree.insert(std::pair<int, int> {1,12});
-	// tree.insert(std::pair<int, int> {2,12});
-
-	// auto c = tree.end();
-	// if( &(*c)==nullptr ) { std::cout << "prova" << std::endl; }
-
-	std::cout << tree << std::endl;
-	// tree.erase(2);
-	// std::cout << tree << std::endl;
-
-	// tree.insert(std::pair<int, int> {2,12});
+	// bst<int,int> tree{};
+	// std::cout << "First pair added -> " << &(*tree.insert(std::pair<int, int> {1,12}).first) << std::endl;
+	// std::cout << "Second pair added -> " << &(*tree.insert(std::pair<int, int> {2,12}).first) << std::endl;
 	// tree.insert(std::pair<int, int> {6,12});
 	// tree.insert(std::pair<int, int> {3,12});
-	// std::cout << tree << std::endl;
 
-	// std::cout << &(*tree.cbegin()) << '\n';
-	// std::cout << &(*tree.end()) << '\n';
+	// std::cout << "\nTree -> " << tree << std::endl;
+	// std::cout << "End -> " << &(*tree.end()) << '\t';
+	// std::cout << "Begin -> " << &(*tree.begin()) << std::endl;
+
+	// tree.erase(1);
+	// std::cout << "\nTree after erase -> " << tree << std::endl;
+	// std::cout << "Begin after erase ->" << &(*tree.begin()) << '\t';
+	// std::cout << "End after erase ->" << &(*tree.end()) << std::endl;
 
 	// tree.find(6);
 
 	// bst<int, int> t1{tree};
-
 	// t1.insert(std::pair<int, int> {5,12});
 	// t1.insert(std::pair<int, int> {7,12});
 	// tree.insert(std::pair<int, int> {10,12});
@@ -402,7 +384,9 @@ int main(){
 	// t1.erase(1);
 	// std::cout << t1 << std::endl;
 
-// EXAMPLE 2
+
+// TEST
+
 	// bst<int,int> tree{};
 	// tree.insert(std::pair<int, int> {8,12}); //root
 	// tree.insert(std::pair<int, int> {3,12}); //left
@@ -414,58 +398,145 @@ int main(){
 	// tree.insert(std::pair<int, int> {4,12}); //left
 	// tree.insert(std::pair<int, int> {7,12}); //right
 	// tree.insert(std::pair<int, int> {5,12}); //right
+	// std::cout << "\nTree -> " << tree << std::endl;
 
-	// std::cout << tree << std::endl;
+	// // ERASE
+	// tree.erase(8);
+	// std::cout << "\nTree after erasing the root 8 -> " << tree << std::endl;
+	// // std::cout << "New root -> " << tree.root->value.first << std::endl;
 	// tree.erase(5);
-	// std::cout << tree << std::endl;
+	// std::cout << "\nTree after erasing a leaf 5 -> " << tree << std::endl;
+	// // std::cout << "Root -> " << tree.root->value.first << std::endl;
+	// tree.erase(14);
+	// std::cout << "\nTree after erasing a node with one child 14 -> " << tree << std::endl;
+	// // std::cout << "Root -> " << tree.root->value.first << std::endl;
 
-// TEST
-	// test emplace 
-	// tree.emplace(1,2);
+
+	// // EMPLACE
+	// std::cout << "\nTree -> " << tree << std::endl;
+	// tree.emplace(2, 2);
+	// std::cout << "\nTree after inserting 2,2 -> " << tree << std::endl;
+	// std::cout << "Searching for 2 -> " << (*tree.find(2)).first << " - " << (*tree.find(2)).second << std::endl;
+
 	// int l{9};
-	// tree.emplace(l,2);
-	// std::cout<<tree<<'\n';
+	// tree.emplace(l, 2);
+	// std::cout << "\nTree after inserting 9, 2 -> " << tree << std::endl;
+	// std::cout << "Searching for 9 -> " << (*tree.find(9)).first << " - " << (*tree.find(9)).second << std::endl;
 
-	// insert
-	//std::cout<<tree.insert(std::pair<int, int> {3,12}).second<<'\n'; // 1 inserito
-	//std::cout<<tree.insert(std::pair<int, int> {3,12}).second<<'\n'; // 0 already there
-	// std::cout<<&(*tree.insert(p).first)<<'\n';
-	// std::cout<<&(*tree.insert(std::pair<int, int> {2,12}).first)<<'\n';
-	// std::cout<<&(*tree.insert(std::pair<int, int> {3,12}).first)<<'\n';
+	// tree.emplace(std::make_pair(15,7));
+	// std::cout << "\nTree after inserting 1,2 -> " << tree << std::endl;
+	// std::cout << "Searching for 15 -> " << (*tree.find(15)).first << " - " << (*tree.find(15)).second << std::endl;
 
-	// // find
-	// std::cout<<&(*tree.find(3))<<'\n';
 
-	// subscribing 
-	// std::cout<<tree[3]<<'\n'; // return 12 
-	// std::cout<<tree[5]<<'\n'; //insertion return 0
+	// // INSERT
+	// bst<int,int> tree{};
+	// tree.insert(std::pair<int, int> {8,12}); //root
+	// tree.insert(std::pair<int, int> {3,12}); //left
+	// tree.insert(std::pair<int, int> {10,12}); //right
+	// tree.insert(std::pair<int, int> {1,12}); //left
+	// tree.insert(std::pair<int, int> {14,12}); //right
+	// tree.insert(std::pair<int, int> {13,12}); //left
+	// tree.insert(std::pair<int, int> {4,12}); //left
+	// std::cout << "\nTree -> " << tree << std::endl;
 
-	// copy
+	// std::cout << "\nInserting 5 -> " << tree.insert(std::pair<int, int> {5,12}).second << std::endl; // 1 inserito
+	// std::cout << "\nTree after inserting 5 -> " << tree << std::endl;
+
+	// std::cout << "\nInserting 3, already present -> " << tree.insert(std::pair<int, int> {3,12}).second << std::endl; // 0 already there
+	// std::cout << "\nTree after inserting 3 -> " << tree << std::endl;
+
+
+	// // FIND
+	// bst<int,int> tree{};
+	// tree.insert(std::pair<int, int> {8,12}); //root
+	// tree.insert(std::pair<int, int> {3,12}); //left
+	// tree.insert(std::pair<int, int> {10,12}); //right
+	// tree.insert(std::pair<int, int> {1,12}); //left
+	// tree.insert(std::pair<int, int> {14,12}); //right
+	// tree.insert(std::pair<int, int> {13,12}); //left
+	// tree.insert(std::pair<int, int> {4,12}); //left
+	// std::cout << "\nTree -> " << tree << std::endl;
+
+	// std::cout << "\nSearching for 3 -> " << (*tree.find(3)).first << std::endl;
+	// std::cout << "\nSearching for 5, not present -> " << &(*tree.find(5)) << std::endl;
+	// std::cout << "\nEnd address -> " << &(*tree.end()) << std::endl;
+
+
+	// // SUBSCRIPTING 
+	// bst<int,int> tree{};
+	// tree.insert(std::pair<int, int> {8,12}); //root
+	// tree.insert(std::pair<int, int> {3,12}); //left
+	// tree.insert(std::pair<int, int> {10,12}); //right
+	// tree.insert(std::pair<int, int> {1,12}); //left
+	// tree.insert(std::pair<int, int> {14,12}); //right
+	// tree.insert(std::pair<int, int> {13,12}); //left
+	// tree.insert(std::pair<int, int> {4,12}); //left
+	// std::cout << "\nTree -> " << tree << std::endl;
+
+	// std::cout << "\nSearching for 3 -> " << tree[3] << std::endl; // return 12 
+	// std::cout << "\nSearching for 5 and inserting it -> " << tree[5] << std::endl; //insertion return 0
+	// tree[5] = 6;
+	// tree[17] = 20;
+	// std::cout << "\nSearching for 5 after changing value to 6 -> " << tree[5] << std::endl; //insertion return 0
+	// std::cout << "\nSearching for 17 - value 20 -> " << tree[17] << std::endl; //insertion return 0
+
+
+	// // COPY
+	// bst<int,int> tree{};
+	// tree.insert(std::pair<int, int> {8,12}); //root
+	// tree.insert(std::pair<int, int> {3,12}); //left
+	// tree.insert(std::pair<int, int> {10,12}); //right
+	// tree.insert(std::pair<int, int> {1,12}); //left
+	// tree.insert(std::pair<int, int> {14,12}); //right
+	// tree.insert(std::pair<int, int> {13,12}); //left
+	// tree.insert(std::pair<int, int> {4,12}); //left
+	// std::cout << "\nTree before copy -> " << tree << std::endl;
+
 	// bst<int,int> t1 = tree; //copy assignment
 	// bst<int,int> t2{tree}; //copy ctor
-	
+	// std::cout << "Tree after copy -> " << tree << '\n';
+	// std::cout << "T1 after copy -> " << t1 << '\n';
+	// std::cout << "T2 after copy -> " << t2 << std::endl;
+
 	// t1.insert(std::pair<int, int> {5,12});
 	// t2.insert(std::pair<int, int> {6,12});
 	// tree.insert(std::pair<int, int> {7,12});
+	// std::cout << "Tree after insert 7 -> " << tree << '\n';
+	// std::cout << "T1 after insert 5 -> " << t1 << '\n';
+	// std::cout << "T2 after insert 6 -> " << t2 << std::endl;
 
-	// std::cout<<"tree \n"<< tree<<'\n';
-	// std::cout<<"t1 \n"<< t1<<'\n';
-	// std::cout<<"t2 \n"<< t2<<'\n';
+
+	// // BEGIN AND END
+	// bst<int,int> tree{};
+	// std::cout << "First pair added -> " << &(*tree.insert(std::pair<int, int> {1,12}).first) << std::endl;
+	// std::cout << "Second pair added -> " << &(*tree.insert(std::pair<int, int> {2,12}).first) << std::endl;
+	// tree.insert(std::pair<int, int> {6,12});
+	// tree.insert(std::pair<int, int> {3,12});
+
+	// std::cout << "\nTree -> " << tree << std::endl;
+	// std::cout << "End -> " << &(*tree.end()) << '\t';
+	// std::cout << "Begin -> " << &(*tree.begin()) << std::endl;
+
+	// tree.erase(1);
+	// std::cout << "\nTree after erase -> " << tree << std::endl;
+	// std::cout << "Begin after erase ->" << &(*tree.begin()) << '\t';
+	// std::cout << "End after erase ->" << &(*tree.end()) << std::endl;
 
 
-	// begin and end 
-	// std::cout<<&(*tree.begin())<<'\n';
-	// std::cout<<&(*tree.end())<<'\n'; //???
-
-	// move????
+	// // MOVE
 	// bst<int,int> t{};
 	// t.insert(std::pair<int, int> {8,11}); //root
 	// t.insert(std::pair<int, int> {3,12}); //left
+	// std::cout << "\nT -> " << t << std::endl;
 
 	// bst<int,int> t1{};
 	// bst<int,int> t2{std::move(t)}; //move ctor?
-	// t1 = std::move(t); //move assignment?
+	// std::cout << "\nT2 before move -> " << t2 << std::endl;
+	// std::cout << "\nT after move -> " << t << std::endl;
+
+	// t1 = std::move(t2); //move assignment?
+	// std::cout << "\nT1 -> " << t1 << std::endl;
+	// std::cout << "\nT2 after move -> " << t2 << std::endl;
 
 	return 0;
 }
-
