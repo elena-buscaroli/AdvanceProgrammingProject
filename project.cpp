@@ -175,21 +175,21 @@ class bst{
  		iterator begin() {
 			if(!root) { return iterator{nullptr}; }
 			node_t* tmp = root.get();
-			while(tmp->left.get()) { tmp = tmp->left.get(); }
+			while(tmp->left) { tmp = tmp->left.get(); }
 			return iterator{tmp};
 		}
 
 		const_iterator begin() const {
 			if(!root) { return const_iterator{nullptr}; }
 			node_t* tmp = root.get();
-			while(tmp->left.get()) { tmp = tmp->left.get(); }
+			while(tmp->left) { tmp = tmp->left.get(); }
 			return const_iterator{tmp};
 		}
 
 		const_iterator cbegin() const {
 			if(!root) { return const_iterator{nullptr}; }
 			node_t* tmp = root.get();
-			while(tmp->left.get()) { tmp = tmp->left.get(); }
+			while(tmp->left) { tmp = tmp->left.get(); }
 			return const_iterator{tmp};
 		}
 
@@ -264,15 +264,13 @@ class bst{
 
 				if( !(n == root.get()) ) {
 					if( n == n->parent->left.get() ) {
-						n->parent->left.reset(nullptr);
-						n->parent = nullptr;
+						n->parent->left.reset();
 					}
 					else {
-						n->parent->right.reset(nullptr); 
-						n->parent = nullptr;
+						n->parent->right.reset(); 
 					}
 				}
-				else { root.reset(nullptr); }
+				else { root.reset(); }
 			}
 
 			else if( n->left && n->right ) {
@@ -280,21 +278,17 @@ class bst{
 				node_t* in = _inorder(n->right.get());
 				auto v = in->value;
 				bool left = false;
-				erase(in->value.first);
+				erase(v.first);
+
 				if( n == root.get() ) {
-					root.release();
-					n = new node_t{v, n->right.get(), n->left.get(), n->parent};
+					n = new node_t{v, n->right.release(), n->left.release(), n->parent};
 					root.reset(n);
 					if(n->left) { n->left->parent = n; }
 					if(n->right) { n->right->parent = n; }
 				}
-
 				else {
-					if( n->parent->left.get() == n ) { left = true; n->parent->left.release(); }
-					else { n->parent->right.release(); }
-
-					n = new node_t{v, n->right.get(), n->left.get(), n->parent};
-
+					if( n->parent->left.get() == n ) { left = true; }
+					n = new node_t{v, n->right.release(), n->left.release(), n->parent};
 					if(n->left) { n->left->parent = n; }
 					if(n->right) { n->right->parent = n; }
 
@@ -303,25 +297,20 @@ class bst{
 				}
 			}
 
-			else {  // only one child
+			else {
 				std::cout << "ONLY ONE CHILD NODE" << std::endl;
 				if( n == root.get() ) {
 					if(n->right) {
 						n->right->parent = nullptr;
-						auto m = n->right.release();
-						root.reset(m);
+						root.reset(n->right.release());
 					}
 					else {
-						n->right->parent = nullptr;
-						auto m = n->left.release();
-						root.reset(m);
+						n->left->parent = nullptr;
+						root.reset(n->left.release());
 					}
 				}
-
 				else {
 					if( n->parent->left.get() == n ) {
-						n->parent->left.release();
-
 						if( n->left ) { 
 							n->left->parent = n->parent;
 							n->parent->left.reset(n->left.release()); 
@@ -331,10 +320,7 @@ class bst{
 							n->parent->left.reset(n->right.release());
 						}
 					}
-
 					else {  // if ( n->parent->right.get() == n )
-						n->parent->right.release();
-
 						if( n->left ) { 
 							n->left->parent = n->parent;
 							n->parent->right.reset(n->left.release()); 
@@ -473,6 +459,17 @@ int main(){
 
 	tree.erase(13);
 	std::cout << "erase(13) - with only one child node -> " << tree << std::endl;
+
+
+	// BALANCE
+	std::cout << "\n\ntree.begin() before balance -> " << &(*tree.begin()) << '\t';
+	std::cout << "tree.end() before balance -> " << &(*tree.end()) << '\n';
+	tree.balance();
+	std::cout << "\ntree.begin() after balance -> " << &(*tree.begin()) << '\t';
+	std::cout << "tree.end() after balance -> " << &(*tree.end()) << std::endl;
+	std::cout << "Tree after BALANCE -> " << tree << std::endl;
+
+
 
 
 	// MOVE
