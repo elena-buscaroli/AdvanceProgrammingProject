@@ -1,5 +1,5 @@
 #include <iostream>
-#include <memory>  
+#include <memory>
 #include <utility>
 #include <iterator>
 #include <vector>
@@ -14,22 +14,16 @@ struct node{
 
 	T value;
 
-	node() {std::cout << "creation \n";};
+	node() {};
 
-	// x è la mia pair
 	explicit node(const T& x): right{nullptr}, left{nullptr}, value{x} {std::cout << "l-value 1\n";}
 	node(const T& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{x} {std::cout << "l-value 2\n";}
-	node(const T& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{x} {std::cout << "l-value 2\n";}
-	// explicit node(const T& x): value{x} {std::cout << "l-value 1\n";}
-	// node(const T& x, node* p, std::unique_ptr<node>& l=nullptr, std::unique_ptr<node>& r=nullptr): parent{p}, value{x}, right{r}, left{l} {std::cout << "l-value 2\n";}
+	node(const T& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{x} {std::cout << "l-value 3\n";}
 
 	explicit node(T&& x): right{nullptr}, left{nullptr}, value{std::move(x)} {std::cout << "r-value 1\n";}
 	node(T&& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{std::move(x)} {std::cout << "r-value 2\n";}
-	node(T&& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{std::move(x)} {std::cout << "r-value 2\n";}
-	// explicit node(T&& x): value{std::move(x)} {std::cout << "r-value 1\n";}
-	// node(T&& x, node* p, std::unique_ptr<node>& l=nullptr, std::unique_ptr<node>& r=nullptr): parent{p},  value{std::move(x)}, right{r}, left{l} {std::cout << "r-value 2\n";}
+	node(T&& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{std::move(x)} {std::cout << "r-value 3\n";}
 
-	// explicit node(const std::unique_ptr<node>& x, node* p=nullptr): value{x->value}, parent{p}{ //this is used for the copy constructor of the bst 
 	explicit node(const std::unique_ptr<node>& x, node* p=nullptr): parent{p}, value{x->value}{ //this is used for the copy constructor of the bst 
 		if(x->right)
 			right.reset(new node{x->right, this});
@@ -68,8 +62,6 @@ class _iterator {
 
 		//pre-increment operator
 		_iterator &operator++() {
-			// if( !(current->parent) ) { return *this; }
-
 			if(current->right) { //if !=nullptr 
 				current = current->right.get();
 				while(current->left){
@@ -77,7 +69,7 @@ class _iterator {
 				}
 				return *this;
 			}
-			else if (current->parent){
+			else if (current->parent) {
 				node* tmp = current;
 				current = current->parent;
 				while(current && tmp == current->right.get()) {
@@ -86,9 +78,8 @@ class _iterator {
 				}
 				return *this;
 			}
-			else{
-				return *this;
-			}
+			current = nullptr;
+			return *this;
 		}
 };
 
@@ -105,7 +96,7 @@ class bst{
 	std::unique_ptr<node_t> root;
 	cmp_op op;
 
-
+	// _find function
 	node_t* _find(const key_type& x) {
 		if(!root) { return nullptr; }
 
@@ -113,175 +104,116 @@ class bst{
 
 		while(tmp) {
 			if(tmp->value.first == x) { return tmp; }
-
 			else if( op(x, tmp->value.first) ) { tmp = tmp->left.get(); }  // if x smaller than tmp
-
 			else if( op(tmp->value.first, x) ) { tmp = tmp->right.get(); }  // if x bigger than tmp
-
 			else { return nullptr; }
 		}
-
 		return nullptr;
 	}
 
+	// _insert function
 	template <typename O>
 	std::pair<iterator, bool> _insert( O&& x){
 			node_t* n{_find(x.first)};
 			if (n){ //if n != nullptr 
-				std::cout<<"already there \n";
+				std::cout << "already there \n";
 					return std::make_pair(iterator{n}, false);
 			}
 		auto tmp = root.get();
-		while(tmp) {  //(op(tmp->value.first, x.first) || op(x.first,tmp->value.first)){ //scegliere altra guardia facile tipo tmp 
-			if (op(tmp->value.first, x.first)){ //my key > root
-				if (tmp->right){
+		while(tmp) {  //(op(tmp->value.first, x.first) || op(x.first,tmp->value.first)){ 
+			if( op(tmp->value.first, x.first) ){ //my key > root
+				if (tmp->right) {
 					tmp = tmp->right.get();
 				}
 				else {
-					tmp->right = std::make_unique<node_t>(std::forward<O>(x),tmp); //tmp is the parent
-					std::cout<<"make node right \n";
+					tmp->right = std::make_unique<node_t> (std::forward<O>(x), tmp); //tmp is the parent
+					std::cout << "make node right \n";
 					return std::make_pair(iterator{tmp->right.get()}, true); 
 				}
 			}
-			if (op(x.first,tmp->value.first)){ //my key < root 
-				if (tmp->left){
+			if( op(x.first,tmp->value.first) ){ //my key < root 
+				if(tmp->left){
 					tmp = tmp->left.get();
 				}
 				else{
-					tmp->left = std::make_unique<node_t>(std::forward<O>(x),tmp); //tmp is the parent
-					std::cout<<"make node left \n";
+					tmp->left = std::make_unique<node_t> (std::forward<O>(x), tmp); //tmp is the parent
+					std::cout << "make node left \n";
 					return std::make_pair(iterator{tmp->left.get()}, true); 
 				}
 			}
 		}
 		root = std::make_unique<node_t> (std::forward<O>(x), nullptr); //qui il parent sarebbe nullptr
-		std::cout<<"make root \n";
+		std::cout << "make root \n";
 		return std::make_pair(iterator{root.get()}, true);
 	}
 
+	// _inorder function
 	node_t* _inorder(node_t* x) {
 		while(x->left) { x = x->left.get(); }
 		return x;
 	}
 
-		//_balance recursive
-		void _balance(std::vector<pair_type>& nodes, int start, int end){
-			if (start < end) {
-			 int mid = (start + end)/2; 
-			 insert(nodes[mid]);
-			_balance(nodes, start, mid);                                                                                                                                     
-    		_balance(nodes, mid+1, end); 
-			}  
+	// _balance recursive
+	void _balance(std::vector<pair_type>& nodes, int start, int end){
+		if (start < end) {
+			int mid = (start + end)/2; 
+			insert(nodes[mid]);
+			_balance(nodes, start, mid);
+			_balance(nodes, mid+1, end); 
 		}
+	}
 
-
-		// void _erase(node_t* r, const key_type& x) {
-		// 	// node_t* par = nullptr;
-		// 	// node_t* curr = r;
-		// 	node_t* n{_find(x)};  // if found, returns an iterator to the node
-		// 	if(!n) { return; }  // if the key is not found find returns nullptr
-			
-		// 	if( !(n->left) && !(n->right) ) {  // if leaf node
-		// 		if( !(n == r) ) {
-		// 			if( n == n->parent->left.get() ) { n->parent->left.reset(nullptr); }
-		// 			if( n == n->parent->right.get() ) { n->parent->right.reset(nullptr); }
-		// 		}
-		// 		else { r = nullptr; }
-		// 	}
-
-		// 	else if( r->left && r->right ) {
-		// 		node_t* in = _inorder(n->right.get());
-		// 		auto v = in->value.first;
-		// 		_erase(r, in->value.first);
-		// 		n = new node_t{v};
-		// 	}
-
-		// 	else {
-		// 		if( n->parent->left.get() == n ) { 
-		// 			node_t* child = new node_t{n->left}; 
-		// 			if( n == r ) { r = std::make_unique<node_t> (child); }
-		// 			else { n->parent->left = std::make_unique<node_t> (child); }
-		// 		}
-		// 		if( n->parent->right.get() == n ) { 
-		// 			node_t* child = new node_t{n->right}; 
-		// 			if( n == r ) { r = std::make_unique<node_t> (child); }
-		// 			else { n->parent->right = std::make_unique<node_t> (child); }
-		// 		}
-		// 	free(n);
-		// 	}
-		// }
 
 	public:
-		bst() noexcept=default;
-		~bst() noexcept=default;
-		// insert
-		//insert
-		//template <typename O> //forwarding reference for using both r and l value 
-		std::pair<iterator, bool> insert(const pair_type& x){
-			return _insert(x);
-		}
+		bst() noexcept = default;
+		~bst() noexcept = default;
 
-		std::pair<iterator, bool> insert(pair_type&& x){
-			return _insert(std::move(x));
-		}
+		// insert
+		std::pair<iterator, bool> insert(const pair_type& x) { return _insert(x); }
+		std::pair<iterator, bool> insert(pair_type&& x) { return _insert(std::move(x)); }
 		
 		// emplace
 		template< class... Types >
-		std::pair<iterator,bool> emplace(Types&&... args){
-		return insert(pair_type(std::forward<Types>(args)...));}
+		std::pair<iterator,bool> emplace(Types&&... args){ return insert(pair_type(std::forward<Types>(args)...)); }
 
 		// clear: since the destructor are then called recursively 
-		void clear(){
-			root.reset();
-		}
+		void clear(){ root.reset(); }
 
 		// begin: begin() returns an iterator to beginning while cbegin() returns a const_iterator to beginning
- 		iterator begin()  {
-			if(!root)
-				return iterator{nullptr};
+ 		iterator begin() {
+			if(!root) { return iterator{nullptr}; }
 			node_t* tmp = root.get();
-			while(tmp->left.get()) 
-				tmp = tmp->left.get();
+			while(tmp->left.get()) { tmp = tmp->left.get(); }
 			return iterator{tmp};
 		}
 
 		const_iterator begin() const {
-			if(!root)
-				return const_iterator{nullptr};
+			if(!root) { return const_iterator{nullptr}; }
 			node_t* tmp = root.get();
-			while(tmp->left.get()) 
-				tmp = tmp->left.get();
+			while(tmp->left.get()) { tmp = tmp->left.get(); }
 			return const_iterator{tmp};
 		}
 
-		const_iterator cbegin() const  {
-			if(!root)
-				return const_iterator{nullptr};
+		const_iterator cbegin() const {
+			if(!root) { return const_iterator{nullptr}; }
 			node_t* tmp = root.get();
-			while(tmp->left.get()) 
-				tmp = tmp->left.get();
+			while(tmp->left.get()) { tmp = tmp->left.get(); }
 			return const_iterator{tmp};
 		}
 
 		// end
-		iterator end()  { return iterator{nullptr}; }
-		const_iterator end() const  { return const_iterator{nullptr}; }
-		const_iterator cend() const  { return const_iterator{nullptr}; }
+		iterator end() { return iterator{nullptr}; }
+		const_iterator end() const { return const_iterator{nullptr}; }
+		const_iterator cend() const { return const_iterator{nullptr}; }
 
 		// find
-		iterator find(const key_type& x) {
-			return iterator{_find(x)};
-		};
-		const_iterator find(const key_type& x) const {
-			return const_iterator{_find(x)};
-		};
+		iterator find(const key_type& x) { return iterator{_find(x)}; };
+		const_iterator find(const key_type& x) const { return const_iterator{_find(x)}; };
 
 		//copy semantics --> deep copy
 		//copy ctor
 		bst(const bst& x) : op{x.op} {
-			if (x.root){
-				root.reset(new node_t{x.root});
-			}
+			if (x.root) { root.reset(new node_t{x.root}); }
 		};
 
 		//copy assignment
@@ -294,58 +226,46 @@ class bst{
 
 		//move semantics 
 		//move ctor
-		bst(bst&&)=default;
+		bst(bst&&) = default;
+
 		//move assignment 
-		bst& operator=(bst&&)=default;
+		bst& operator=(bst&&) = default;
 
 		// balance
 		void balance(){
-			// create ordered vector
 			std::vector<pair_type> nodes;
-			for (const auto& i : *this){
-					nodes.push_back(i);
-				}
-			clear(); 
-			// construct the new balanced tree
-			return(_balance(nodes,0,nodes.size()));
-		} 
+			for (const auto& i : *this) { nodes.push_back(i); }
+			clear();
+			return(_balance(nodes, 0, nodes.size()));
+		}
 
 		// subscripting operator
-		value_type& operator[](const key_type& x){
+		value_type& operator[](const key_type& x) {
 			value_type v{};
-			auto i = insert(std::pair<key_type,value_type>(x,v)); // iterator pointing to node + bool 
+			auto i = insert(std::pair<key_type,value_type>(x, v)); // iterator pointing to node + bool 
 			return (*i.first).second;
 		 }
 
-		value_type& operator[](key_type&& x){
+		value_type& operator[](key_type&& x) {
 			value_type v{};
-			auto i = insert(std::pair<key_type,value_type>(x,v)); // iterator pointing to node + bool 
+			auto i = insert(std::pair<key_type,value_type>(x, v)); // iterator pointing to node + bool 
 			return (*i.first).second;
 		 }
 
 		// put-to 
 		friend
 		std::ostream& operator<<(std::ostream& os, const bst& x){
-			for(const auto& i: x) { // se l'iterator funziona 
+			for(const auto& i: x) {
 				os << i.first << " ";
 			}
 			os << std::endl;
 			return os;
 		}
 
-		// node_t* _inorder(node_t* x) {
-		// 	while(x->left) { x = x->left.get(); }
-		// 	return x;
-		// }
-
 		// erase
-		
-		void _erase(const key_type& x) {
-
+		void erase(const key_type& x) {
 			node_t* n{_find(x)};  // if found, returns an iterator to the node
 			if(!n) { return; }  // if the key is not found find returns nullptr
-
-			std::cout << "prova" << std::endl;
 
 			if( !(n->left) && !(n->right) ) {  // if leaf node
 				std::cout << "LEAF NODE" << std::endl;
@@ -360,10 +280,7 @@ class bst{
 						n->parent = nullptr;
 					}
 				}
-				else { 
-					// r = nullptr; 
-					root.reset(nullptr);
-				}
+				else { root.reset(nullptr); }
 			}
 
 			else if( n->left && n->right ) {
@@ -372,10 +289,7 @@ class bst{
 				auto v = in->value;
 				bool left = false;
 
-				std::cout << "in " << in->value.first << std::endl;
-				std::cout << "roor " << root->value.first << '\n' << std::endl;
-
-				_erase(in->value.first);
+				erase(in->value.first);
 
 				if( n == root.get() ) {
 					root.release();
@@ -402,7 +316,6 @@ class bst{
 			else {  // only one child
 				std::cout << "ONLY ONE CHILD NODE" << std::endl;
 				if( n == root.get() ) {
-					std::cout << "Root node" << std::endl;
 					if(n->right) {
 						n->right->parent = nullptr;
 						auto m = n->right.release();
@@ -417,7 +330,6 @@ class bst{
 
 				else {
 					if( n->parent->left.get() == n ) {
-						std::cout << "left node" << std::endl;
 						n->parent->left.release();
 
 						if( n->left ) { 
@@ -431,7 +343,6 @@ class bst{
 					}
 
 					else {  // if ( n->parent->right.get() == n )
-						std::cout << "right node" << std::endl;
 						n->parent->right.release();
 
 						if( n->left ) { 
@@ -447,11 +358,6 @@ class bst{
 			}
 		}
 
-		void erase(const key_type& x) {
-			_erase(x);
-			return;
-		}
-
 }; // end bst class
 
 
@@ -459,25 +365,31 @@ class bst{
 
 int main(){
 
-	using type = std::pair<int, int>;
-	std::pair<int, int> p{1, 10};
-	using node_t = node<type>;
+	// using type = std::pair<int, int>;
+	// std::pair<int, int> p{1, 10};
+	// using node_t = node<type>;
 
 
 // EXAMPLE 1
-	// bst<int,int> tree{};
+	bst<int,int> tree{};
 	// tree.insert(std::pair<int, int> {1,12});
 	// tree.insert(std::pair<int, int> {2,12});
 
-	// std::cout << tree << std::endl;
+	// auto c = tree.end();
+	// if( &(*c)==nullptr ) { std::cout << "prova" << std::endl; }
 
-	// tree.erase(1);
+	std::cout << tree << std::endl;
+	// tree.erase(2);
 	// std::cout << tree << std::endl;
-
 
 	// tree.insert(std::pair<int, int> {2,12});
 	// tree.insert(std::pair<int, int> {6,12});
 	// tree.insert(std::pair<int, int> {3,12});
+	// std::cout << tree << std::endl;
+
+	// std::cout << &(*tree.cbegin()) << '\n';
+	// std::cout << &(*tree.end()) << '\n';
+
 	// tree.find(6);
 
 	// bst<int, int> t1{tree};
@@ -491,44 +403,44 @@ int main(){
 	// std::cout << t1 << std::endl;
 
 // EXAMPLE 2
-	bst<int,int> tree{};
-	tree.insert(std::pair<int, int> {8,12}); //root
-	tree.insert(std::pair<int, int> {3,12}); //left
-	tree.insert(std::pair<int, int> {10,12}); //right
-	tree.insert(std::pair<int, int> {6,12}); //right 
-	tree.insert(std::pair<int, int> {1,12}); //left
-	tree.insert(std::pair<int, int> {14,12}); //right
-	tree.insert(std::pair<int, int> {13,12}); //left
-	tree.insert(std::pair<int, int> {4,12}); //left
-	tree.insert(std::pair<int, int> {7,12}); //right
-	tree.insert(std::pair<int, int> {5,12}); //right
+	// bst<int,int> tree{};
+	// tree.insert(std::pair<int, int> {8,12}); //root
+	// tree.insert(std::pair<int, int> {3,12}); //left
+	// tree.insert(std::pair<int, int> {10,12}); //right
+	// tree.insert(std::pair<int, int> {6,12}); //right 
+	// tree.insert(std::pair<int, int> {1,12}); //left
+	// tree.insert(std::pair<int, int> {14,12}); //right
+	// tree.insert(std::pair<int, int> {13,12}); //left
+	// tree.insert(std::pair<int, int> {4,12}); //left
+	// tree.insert(std::pair<int, int> {7,12}); //right
+	// tree.insert(std::pair<int, int> {5,12}); //right
 
-	std::cout << tree << std::endl;
-	tree.erase(5);
-	std::cout << tree << std::endl;
+	// std::cout << tree << std::endl;
+	// tree.erase(5);
+	// std::cout << tree << std::endl;
 
 // TEST
-	//test emplace 
+	// test emplace 
 	// tree.emplace(1,2);
 	// int l{9};
 	// tree.emplace(l,2);
 	// std::cout<<tree<<'\n';
 
-	//insert
+	// insert
 	//std::cout<<tree.insert(std::pair<int, int> {3,12}).second<<'\n'; // 1 inserito
 	//std::cout<<tree.insert(std::pair<int, int> {3,12}).second<<'\n'; // 0 already there
 	// std::cout<<&(*tree.insert(p).first)<<'\n';
 	// std::cout<<&(*tree.insert(std::pair<int, int> {2,12}).first)<<'\n';
 	// std::cout<<&(*tree.insert(std::pair<int, int> {3,12}).first)<<'\n';
 
-	// //find
+	// // find
 	// std::cout<<&(*tree.find(3))<<'\n';
 
-	//subscribing 
+	// subscribing 
 	// std::cout<<tree[3]<<'\n'; // return 12 
 	// std::cout<<tree[5]<<'\n'; //insertion return 0
 
-	//copy
+	// copy
 	// bst<int,int> t1 = tree; //copy assignment
 	// bst<int,int> t2{tree}; //copy ctor
 	
@@ -541,14 +453,14 @@ int main(){
 	// std::cout<<"t2 \n"<< t2<<'\n';
 
 
-	//begin and end 
-	//std::cout<<&(*tree.begin())<<'\n';
-	//std::cout<<&(*tree.end())<<'\n'; //???
+	// begin and end 
+	// std::cout<<&(*tree.begin())<<'\n';
+	// std::cout<<&(*tree.end())<<'\n'; //???
 
-	//move????
+	// move????
 	// bst<int,int> t{};
 	// t.insert(std::pair<int, int> {8,11}); //root
-    // t.insert(std::pair<int, int> {3,12}); //left
+	// t.insert(std::pair<int, int> {3,12}); //left
 
 	// bst<int,int> t1{};
 	// bst<int,int> t2{std::move(t)}; //move ctor?
