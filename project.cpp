@@ -42,12 +42,6 @@ struct node{
 };
 
 
-// template < typename value_type, typename key_type, typename cmp_op=std::less<key_type> >
-// template < typename T >
-// template < typename O >
-// class bst< value_type, key_type, cmp_op >::_iterator {
-//	 using pair_type = std::pair< const key_type, value_type >;
-//	 using node = typename node< T >;
 template < typename node, typename T >
 class _iterator {
 	node* current;
@@ -132,10 +126,11 @@ class bst{
 
 	template <typename O>
 	std::pair<iterator, bool> _insert( O&& x){
-		// auto n = find(x.first);
-		// if (n){
-		// 	 return std::make_pair(n, false);
-		// }
+			node_t* n{_find(x.first)};
+			if (n){ //if n != nullptr 
+				std::cout<<"already there \n";
+					return std::make_pair(iterator{n}, false);
+			}
 		auto tmp = root.get();
 		while(tmp) {  //(op(tmp->value.first, x.first) || op(x.first,tmp->value.first)){ //scegliere altra guardia facile tipo tmp 
 			if (op(tmp->value.first, x.first)){ //my key > root
@@ -220,24 +215,27 @@ class bst{
 		bst() noexcept=default;
 		~bst() noexcept=default;
 		// insert
-		// The function returns a pair of an iterator (pointing to the node) and a bool. 
-		// The bool is true if a new node has been allocated, 
-		template <typename O> //forwarding reference for using both r and l value 
-		std::pair<iterator, bool> insert( O&& x){ return _insert(x);};
+		//insert
+		//template <typename O> //forwarding reference for using both r and l value 
+		std::pair<iterator, bool> insert(const pair_type& x){
+			return _insert(x);
+		}
+
+		std::pair<iterator, bool> insert(pair_type&& x){
+			return _insert(std::move(x));
+		}
 		
-		// std::pair<iterator, bool> insert(pair_type&& x);
 		// emplace
 		template< class... Types >
-		std::pair<iterator,bool> emplace(Types&&... args);
+		std::pair<iterator,bool> emplace(Types&&... args){
+		return insert(pair_type(std::forward<Types>(args)...));}
 
-		// clear
-		// since the destructor are then called recursively 
+		// clear: since the destructor are then called recursively 
 		void clear(){
 			root.reset();
 		}
 
-		// begin
-		// begin() returns an iterator to beginning while cbegin() returns a const_iterator to beginning
+		// begin: begin() returns an iterator to beginning while cbegin() returns a const_iterator to beginning
  		iterator begin()  {
 			if(!root)
 				return iterator{nullptr};
@@ -307,10 +305,6 @@ class bst{
 			for (const auto& i : *this){
 					nodes.push_back(i);
 				}
-			// for (unsigned long  i=0; i<nodes.size();i++){
-			// 	std::cout<<nodes[i].first<<nodes[i].second<<'\n';
-			// }
-			//clear the old tree
 			clear(); 
 			// construct the new balanced tree
 			return(_balance(nodes,0,nodes.size()));
@@ -512,6 +506,53 @@ int main(){
 	std::cout << tree << std::endl;
 	tree.erase(5);
 	std::cout << tree << std::endl;
+
+// TEST
+	//test emplace 
+	// tree.emplace(1,2);
+	// int l{9};
+	// tree.emplace(l,2);
+	// std::cout<<tree<<'\n';
+
+	//insert
+	//std::cout<<tree.insert(std::pair<int, int> {3,12}).second<<'\n'; // 1 inserito
+	//std::cout<<tree.insert(std::pair<int, int> {3,12}).second<<'\n'; // 0 already there
+	// std::cout<<&(*tree.insert(p).first)<<'\n';
+	// std::cout<<&(*tree.insert(std::pair<int, int> {2,12}).first)<<'\n';
+	// std::cout<<&(*tree.insert(std::pair<int, int> {3,12}).first)<<'\n';
+
+	// //find
+	// std::cout<<&(*tree.find(3))<<'\n';
+
+	//subscribing 
+	// std::cout<<tree[3]<<'\n'; // return 12 
+	// std::cout<<tree[5]<<'\n'; //insertion return 0
+
+	//copy
+	// bst<int,int> t1 = tree; //copy assignment
+	// bst<int,int> t2{tree}; //copy ctor
+	
+	// t1.insert(std::pair<int, int> {5,12});
+	// t2.insert(std::pair<int, int> {6,12});
+	// tree.insert(std::pair<int, int> {7,12});
+
+	// std::cout<<"tree \n"<< tree<<'\n';
+	// std::cout<<"t1 \n"<< t1<<'\n';
+	// std::cout<<"t2 \n"<< t2<<'\n';
+
+
+	//begin and end 
+	//std::cout<<&(*tree.begin())<<'\n';
+	//std::cout<<&(*tree.end())<<'\n'; //???
+
+	//move????
+	// bst<int,int> t{};
+	// t.insert(std::pair<int, int> {8,11}); //root
+    // t.insert(std::pair<int, int> {3,12}); //left
+
+	// bst<int,int> t1{};
+	// bst<int,int> t2{std::move(t)}; //move ctor?
+	// t1 = std::move(t); //move assignment?
 
 	return 0;
 }
