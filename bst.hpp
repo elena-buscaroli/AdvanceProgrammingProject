@@ -51,16 +51,16 @@ struct node{
 /*!
 	@brief Constructor for node in which right, left and parent are inizialized to input pointer and value to the input data x.
 	@tparam x const lvalue reference.
-	@tparam r Pointer to the right node.
-	@tparam l Pointer to the left node.
-	@tparam p Pointer to the parent node.
+	@tparam r pointer to the right node.
+	@tparam l pointer to the left node.
+	@tparam p pointer to the parent node.
 */
 	node(const T& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{x} { /*std::cout << " (l-value 3) ";*/ }
 
 /*!
 	@brief Constructor for node in which right and left node are initialized to nullptr, parent to the input pointer to node and value to the input data x.
 	@tparam x rvalue reference.
-	@tparam p Pointer to the parent node.
+	@tparam p raw pointer to the parent node.
 */
 
 	explicit node(T&& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{std::move(x)} { /*std::cout << " (r-value 2) ";*/ }
@@ -68,17 +68,17 @@ struct node{
 /*!
 	@brief Constructor for node in which right, left and parent are inizialized to input pointer and value to the input data x.
 	@tparam x rvalue reference.
-	@tparam r Pointer to the right node.
-	@tparam l Pointer to the left node.
-	@tparam p Pointer to the parent node.
+	@tparam r pointer to the right node.
+	@tparam l pointer to the left node.
+	@tparam p pointer to the parent node.
 */
 	node(T&& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{std::move(x)} { /*std::cout << " (r-value 3) ";*/ }
 
 /*!
 	@brief Constructor for node, used by the copy constructor of bst.
 	@brief Set the parent with the input pointer, copies the value and recursively calls itself on the left and right node.
-	@tparam x Unique_ptr to node to be copied. 
-	@tparam p Pointer to the parent node.
+	@tparam x std::unique_ptr to node to be copied. 
+	@tparam p pointer to the parent node.
 */
 	explicit node(const std::unique_ptr<node>& x, node* p=nullptr): parent{p}, value{x->value}{
 		if(x->right)
@@ -89,7 +89,7 @@ struct node{
 	}
 
 /*!
-	@brief Deconstructor.
+	@brief Default deconstructor.
 */
 	~node() noexcept = default;
 };
@@ -119,8 +119,8 @@ class bst{
 
 /*!
 	@brief This function checks if a node is present in the tree by checking its key.
-	@tparam x const lvalue of the key to look for.
-	@return node* raw pointer to the found node or a null pointer if the key was not found.
+	@tparam x const lvalue reference to the key to look for.
+	@return raw pointer to the found node or a null pointer if the key was not found.
 */
 	node_t* _find(const key_type& x) {
 		if(!root) { return nullptr; }
@@ -137,11 +137,11 @@ class bst{
 
 /*!
 	@brief This function inserts a new node in the tree, if not present. It first checks if the key is already present, by means of the _find function, and if the pair is not present in the tree, it searches for the right place to insert it.
-	@tparam x<O> pair to be inserted.
+	@tparam x<O> reference to the pair to be inserted.
 	@return std::pair<iterator,bool> iterator to the inserted node, true, or iterator to the already existing node, false.
 */
 	template <typename O>
-	std::pair<iterator, bool> _insert( O&& x){
+	std::pair<iterator, bool> _insert(O&& x){
 		node_t* n{_find(x.first)};
 		if (n) { return std::make_pair(iterator{n}, false); }
 
@@ -180,11 +180,10 @@ class bst{
 
 /*!
 	@brief This functions calls recursively itself in order to balance the tree.
-	@tparam nodes vector containing the node pairs ordered by keys.
+	@tparam nodes reference to the vector containing the node pairs ordered by keys.
 	@tparam start integer index of the first element of the vector.
 	@tparam end integer index of the last element of the vector, namely its length.
 */
-
 	void _balance(std::vector<pair_type>& nodes, int start, int end){
 		if (start < end) {
 			int mid = (start + end)/2; 
@@ -293,14 +292,14 @@ class bst{
 
 /*!
 	@brief This function calls _find to check if a node is present in the tree by checking its key.
-	@tparam x const lvalue of the key to look for.
+	@tparam x const lvalue reference to the key to look for.
 	@return iterator pointing to the found node or to a null pointer if the key was not found.
 */
 		iterator find(const key_type& x) { return iterator{_find(x)}; };
 
 /*!
 	@brief This function calls _find to check if a node is present in the tree by checking its key.
-	@tparam x const lvalue of the key to look for.
+	@tparam x const lvalue reference to the key to look for.
 	@return const_iterator pointing to the found node or to a null pointer if the key was not found.
 */
 		const_iterator find(const key_type& x) const { return const_iterator{_find(x)}; };
@@ -329,15 +328,15 @@ class bst{
 
 /*!
 	@brief Default move constructor for bst.
-	@tparam rvalue reference to the tree.
+	@tparam x rvalue reference to the tree.
 */
-		bst(bst&&) noexcept = default;
+		bst(bst&& x) noexcept = default;
 
 /*!
 	@brief Default move assignment for bst.
-	@tparam rvalue reference to the tree.
+	@tparam x rvalue reference to the tree.
 */
-		bst& operator=(bst&&) noexcept = default;
+		bst& operator=(bst&& x) noexcept = default;
 
 
 /*!
