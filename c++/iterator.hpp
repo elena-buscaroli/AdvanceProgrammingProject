@@ -16,8 +16,8 @@
 
 
 /*!
-	@tparam node Template for an object of type node_t.
-	@tparam T Template for an object of type T that is the pair_type.
+	@tparam node_t template for an object of type node_t.
+	@tparam T template for an object of type T that is the pair_type.
 */
 
 template < typename node_t, typename T >
@@ -37,12 +37,12 @@ class _iterator {
 
 /*!
 	@brief Constructor of new _iterator object.
-	@tparam p Raw pointer to a node.
+	@tparam p raw pointer to a node.
 */
 		explicit _iterator(node_t* p) : current{p} {}
 
 /*!
-	@brief Deconstructor of _iterator object.
+	@brief Default deconstructor of _iterator object.
 */
 		~_iterator() noexcept = default;
 
@@ -61,8 +61,8 @@ class _iterator {
 
 /*!
 	@brief Overloading of equality operator.
-	@tparam a References to two iterators.
-	@tparam b References to two iterators
+	@tparam a reference to the first iterator.
+	@tparam b reference to the first iterator.
 	@return Bool true if they point to the same node, false otherwise.
 */
 		friend bool operator==(_iterator &a, _iterator &b) { return a.current == b.current; }
@@ -70,8 +70,8 @@ class _iterator {
 
 /*!
 	@brief Overloading of inequality operator.
-	@tparam a References to two iterators.
-	@tparam b References to two iterators
+	@tparam a reference to the first iterator.
+	@tparam b reference to the first iterator.
 	@return Bool true if they point to different nodes, false otherwise.
 */
 		friend bool operator!=(_iterator &a, _iterator &b) { return !(a == b); }
