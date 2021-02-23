@@ -11,7 +11,7 @@
 /*!
 	@file bst.hpp
 	@authors Buscaroli Elena, Valeriani Lucrezia
-	@brief Header containing the implementation of node class and bst class
+	@brief Header containing the implementation of node struct and bst class
 */
 
 
@@ -44,7 +44,7 @@ struct node{
 /*!
 	@brief Constructor for node in which right and left are initialized to nullptr, parent to the input pointer to node and value to the input data x.
 	@tparam x const lvalue reference.
-	@tparam p Pointer to the parent node.
+	@tparam p raw pointer to the parent node.
 */
 	explicit node(const T& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{x} { /*std::cout << " (l-value 2) ";*/ }
 
@@ -62,7 +62,6 @@ struct node{
 	@tparam x rvalue reference.
 	@tparam p raw pointer to the parent node.
 */
-
 	explicit node(T&& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{std::move(x)} { /*std::cout << " (r-value 2) ";*/ }
 
 /*!
@@ -119,16 +118,17 @@ class bst{
 
 /*!
 	@brief This function checks if a node is present in the tree by checking its key.
+	@brief It iteratively compare the key of each node to the one of its right node, if it is bigger, or of its left node, if it is smaller.
 	@tparam x const lvalue reference to the key to look for.
-	@return raw pointer to the found node or a null pointer if the key was not found.
+	@return Raw pointer to the found node or a nullptr if the key was not found.
 */
 	node_t* _find(const key_type& x) {
 		if(!root) { return nullptr; }
 		node_t* tmp = root.get();
 		while(tmp) {
 			if(tmp->value.first == x) { return tmp; }
-			else if( op(x, tmp->value.first) ) { tmp = tmp->left.get(); }  // if x smaller than tmp
-			else if( op(tmp->value.first, x) ) { tmp = tmp->right.get(); }  // if x bigger than tmp
+			else if( op(x, tmp->value.first) ) { tmp = tmp->left.get(); }
+			else if( op(tmp->value.first, x) ) { tmp = tmp->right.get(); }
 			else { return nullptr; }
 		}
 		return nullptr;
@@ -136,7 +136,8 @@ class bst{
 
 
 /*!
-	@brief This function inserts a new node in the tree, if not present. It first checks if the key is already present, by means of the _find function, and if the pair is not present in the tree, it searches for the right place to insert it.
+	@brief This function inserts a new node in the tree, if not present. 
+	@brief It first checks if the key is already present, by means of the _find function, and if the pair is not present in the tree, it searches for the right place to insert it.
 	@tparam x<O> reference to the pair to be inserted.
 	@return std::pair<iterator,bool> iterator to the inserted node, true, or iterator to the already existing node, false.
 */
@@ -168,9 +169,10 @@ class bst{
 
 
 /*!
-	@brief This function searches for the left-most node in the tree rooted at the input node x. If the input node does not have any left nodes, it simply returns the input node.
+	@brief This function searches for the left-most node in the tree rooted at the input node x. 
+	@brief If the input node does not have any left nodes, it simply returns the input node.
 	@tparam x raw pointer to the input node.
-	@return raw pointer to the left-most node in the tree rooted at x.
+	@return Raw pointer to the left-most node in the tree rooted at x.
 */
 	node_t* _inorder(node_t* x) {
 		while(x->left) { x = x->left.get(); }
@@ -195,6 +197,7 @@ class bst{
 
 
 	public:
+
 /*!
 	@brief Default constructor for the bst class.
 */
@@ -238,7 +241,7 @@ class bst{
 
 
 /*!
-	@brief This function searches for the left-most node of the tree and returns an iterator pointing at that node.
+	@brief This function searches for the left-most node of the tree and returns an iterator pointing to that node.
 	@return iterator to the left-most node.
 */
  		iterator begin() noexcept {
@@ -249,7 +252,7 @@ class bst{
 		}
 
 /*!
-	@brief This function searches for the left-most node of the tree and returns a const iterator pointing at that node.
+	@brief This function searches for the left-most node of the tree and returns a const iterator pointing to that node.
 	@return const_iterator to the left-most node.
 */
 		const_iterator begin() const noexcept {
@@ -260,8 +263,8 @@ class bst{
 		}
 
 /*!
-	@brief This function searches for the left-most node of the tree and returns a const iterator pointing at that node.
-	@return const_iterator to the left-most node.
+	@brief This function searches for the left-most node of the tree and returns a const iterator pointing to that node.
+	@return Const iterator to the left-most node.
 */
 		const_iterator cbegin() const noexcept {
 			if(!root) { return const_iterator{nullptr}; }
@@ -272,20 +275,20 @@ class bst{
 
 
 /*!
-	@brief This function returns an iterator pointing at one past the last element of the tree, namely the right-most node.
-	@return iterator to one past the last node.
+	@brief This function returns an iterator pointing to one past the last element of the tree, namely the right-most node.
+	@return Iterator to one past the last node.
 */
 		iterator end() noexcept { return iterator{nullptr}; }
 
 /*!
-	@brief This function returns a const iterator pointing at one past the last element of the tree, namely the right-most node.
-	@return const_iterator to one past the last node.
+	@brief This function returns a const iterator pointing to one past the last element of the tree, namely the right-most node.
+	@return Const iterator to one past the last node.
 */
 		const_iterator end() const noexcept { return const_iterator{nullptr}; }
 
 /*!
-	@brief This function returns a const iterator pointing at one past the last element of the tree, namely the right-most node.
-	@return const_iterator to one past the last node.
+	@brief This function returns a const iterator pointing to one past the last element of the tree, namely the right-most node.
+	@return Const iterator to one past the last node.
 */
 		const_iterator cend() const noexcept { return const_iterator{nullptr}; }
 
@@ -293,21 +296,21 @@ class bst{
 /*!
 	@brief This function calls _find to check if a node is present in the tree by checking its key.
 	@tparam x const lvalue reference to the key to look for.
-	@return iterator pointing to the found node or to a null pointer if the key was not found.
+	@return Iterator pointing to the found node or to a null pointer if the key was not found.
 */
 		iterator find(const key_type& x) { return iterator{_find(x)}; };
 
 /*!
 	@brief This function calls _find to check if a node is present in the tree by checking its key.
 	@tparam x const lvalue reference to the key to look for.
-	@return const_iterator pointing to the found node or to a null pointer if the key was not found.
+	@return Const iterator pointing to the found node or to a null pointer if the key was not found.
 */
 		const_iterator find(const key_type& x) const { return const_iterator{_find(x)}; };
 
 
 /*!
 	@brief Copy constructor for bst that creates a deep copy of the tree by calling the node copy constructor on the root node.
-	@tparam x const lvalue reference to the tree to be copied.
+	@tparam x const lvalue reference to the tree.
 */
 		bst(const bst& x) : op{x.op} {
 			if (x.root) { root.reset(new node_t{x.root}); }
@@ -316,7 +319,7 @@ class bst{
 /*!
 	@brief Copy assignment for a bst tree.
 	@tparam x const lvalue reference to the tree to be copied.
-	@return bst& lvalue reference to the copied tree.
+	@return lvalue reference to the copied tree.
 */
 		bst& operator=(const bst& x){
 			root.reset();
@@ -341,7 +344,7 @@ class bst{
 
 /*!
 	@brief This function is used to balance the tree, by means of the _balance function.
-	It first creates a vector containing the nodes pairs ordered by key values, clear the unalanced tree and then calls _balance on the nodes vector to generate a balanced tree.
+	@brief It first creates a vector containing the nodes pairs ordered by key values, clear the unalanced tree and then calls _balance on the nodes vector to generate a balanced tree.
 */
 		void balance(){
 			std::vector<pair_type> nodes;
@@ -352,9 +355,9 @@ class bst{
 
 /*!
 	@brief Overloaded operator that search the key to return corresponding associated value. 
-	If the key is not present in the tree, it inserts a node with that key and as value a random value_type.
+	@brief If the key is not present in the tree, it inserts a node with that key and as value a random value_type.
 	@tparam x const lvalue reference to key.
-	@return value mapped by the key.
+	@return lvalue reference to the value mapped by the key.
 */
 		value_type& operator[](const key_type& x) {
 			value_type v;
@@ -364,9 +367,9 @@ class bst{
 
 /*!
 	@brief Overloaded operator that search the key to return corresponding associated value. 
-	If the key is not present in the tree, it inserts a node with that key and as value a random value_type.
+	@brief If the key is not present in the tree, it inserts a node with that key and as value a random value_type.
 	@tparam x rvalue reference to key.
-	@return value mapped by the key.
+	@return lvalue reference to the value mapped by the key.
 */
 		value_type& operator[](key_type&& x) {
 			value_type v;
@@ -391,19 +394,16 @@ class bst{
 
 
 /*!
-	@brief This function erases the content of the node with key equal to the input one, if present. First of all, the function calls the _find function to check if the key is present or not in the tree. If not, the function returns.
-	@brief If the node is present, the function checks whether the node to be erased does not have either left or right nodes, hence if it is a leaf. 
-	In this case, if the node to be erased is the root, it simply resets the root to nullptr, otherwise, it resets to nullptr the unique pointer pointing from the parent to the node to be erased.
-	If the node has only one child node, if the node to be erased is the root, the function resets the root to its left or right node, otherwise, the unique pointer from the parent to the node to be erased is reset to point to its
-	left or right node.
-	If the node to be erased has both right and left nodes, the function calls _inorder to find the first successor node, which will have only one or no children, and then the function itself is called to erase it.
-	Then, a new node having the value of the successor node is generated and if the node to be erased is the root, the root is reset to this new node and the parent of its left and/or right nodes are set to point to the new root,
-	otherwise node parent is reset to point at the new node and the parent of its left and/or right nodes are set to point to the new node.
+	@brief This function erases the content of the node with key equal to the input one, if present. 
+	@brief First of all, the function calls the _find function to check if the key is present or not in the tree. If not, the function returns. Then we might face three different situations, the node to be erased
+	has no left and right nodes, namely it is a leaf, it might have only one left or right node, or it has both left and right nodes. In all the situations, we need to check if the node to be erased is the root node and
+	release all the node ownerships, and in the latter two cases, we also need to reset the ownerships of the parent and left and/or right nodes.
+	When the node to be erased has two children nodes, the function will call _inorder to find the first inorder successor, and then calls itself to erase the successor node, after having stored its value.
 	@tparam x const lvalue of the key to look for.
 */
 		void erase(const key_type& x) {
-			node_t* n{_find(x)};  // if found, returns an iterator to the node
-			if(!n) { return; }  // if the key is not found find returns nullptr
+			node_t* n{_find(x)};
+			if(!n) { return; }
 
 			if( !(n->left) && !(n->right) ) { // std::cout << "LEAF NODE" << std::endl;
 				if( !(n == root.get()) ) {
