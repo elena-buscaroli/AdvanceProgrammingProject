@@ -8,16 +8,25 @@
 #include <vector>
 #include "bst.hpp"
 
-/**
- * @file iterator.hpp
- * @authors Buscaroli Elena, Valeriani Lucrezia
- * @brief Source code
- */
+/*!
+	@file iterator.hpp
+	@authors Buscaroli Elena, Valeriani Lucrezia
+	@brief Header containing the implementation of _iterator class
+*/
 
 
-template < typename node, typename T >
+/*!
+	@tparam node Template for an object of type node_t.
+	@tparam T Template for an object of type T that is the pair_type.
+*/
+
+template < typename node_t, typename T >
 class _iterator {
-	node* current;
+
+/*!
+	@brief Raw pointer to the current node of type node_t.
+*/
+	node_t* current;
 
 	public:
 		using v_type = T;
@@ -26,20 +35,53 @@ class _iterator {
 		using difference_type = std::ptrdiff_t;
 		using iterator_category = std::forward_iterator_tag;
 
-		explicit _iterator(node* p) : current{p} {}
+/*!
+	@brief Constructor of new _iterator object.
+	@tparam p Raw pointer to a node.
+*/
+		explicit _iterator(node_t* p) : current{p} {}
+
+/*!
+	@brief Deconstructor of _iterator object.
+*/
 		~_iterator() noexcept = default;
 
-		//dereference operator 
+/*!
+	@brief Dereference operator.
+	@return Reference to the value stored by the node pointed by the iterator.
+*/
 		reference operator*() const { return current->value; }
+
+/*!
+	@brief Reference operator.
+	@return Pointer to the value stored by the node pointed by the iterator.
+*/
 		pointer operator->() const { return &**this; }
 
-		// boolean operator 
+
+/*!
+	@brief Overloading of equality operator.
+	@tparam a,b References to two iterators.
+	@return Bool true if they point to the same node, false otherwise.
+*/
 		friend 
 		bool operator==(_iterator &a, _iterator &b) { return a.current == b.current; }
+
+
+/*!
+	@brief Overloading of inequality operator.
+	@tparam a,b References to two iterators.
+	@return Bool true if they point to different nodes, false otherwise.
+*/
 		friend 
 		bool operator!=(_iterator &a, _iterator &b) { return !(a == b); }
 
-		//pre-increment operator
+
+/*!
+	@brief Overloading of pre-increment operator ++.
+	@brief Allow for the traverse of the bst from begin() to end() so, from left to right.
+	@return Reference to the iterator.
+*/
 		_iterator &operator++() {
 			if(current->right) { //if !=nullptr 
 				current = current->right.get();
@@ -49,7 +91,7 @@ class _iterator {
 				return *this;
 			}
 			else if (current->parent) {
-				node* tmp = current;
+				node_t* tmp = current;
 				current = current->parent;
 				while(current && tmp == current->right.get()) {
 					tmp = current;
