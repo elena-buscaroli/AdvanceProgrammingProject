@@ -55,7 +55,7 @@ void test(T& tree, size_t size, std::ofstream& f) {
 int main() {
 
 	bst<int, int> bst_tree;
-	auto bst_balanced_tree = bst_tree;
+	auto bst_balanced_tree;
 	std::map<int, int> map_tree;
 	std::unordered_map<int, int> unmap_tree;
 
