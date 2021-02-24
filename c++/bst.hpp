@@ -41,12 +41,6 @@ struct node{
 */
 	T value;
 
-/*!
-	@brief Constructor for node in which right and left are initialized to nullptr, parent to the input pointer to node and value to the input data x.
-	@tparam x const lvalue reference.
-	@tparam p raw pointer to the parent node.
-*/
-	explicit node(const T& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{x} { /*std::cout << " (l-value 2) ";*/ }
 
 /*!
 	@brief Constructor for node in which right, left and parent are inizialized to input pointer and value to the input data x.
@@ -55,14 +49,8 @@ struct node{
 	@tparam l pointer to the left node.
 	@tparam p pointer to the parent node.
 */
-	node(const T& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{x} { /*std::cout << " (l-value 3) ";*/ }
+	node(const T& x, node* r=nullptr, node* l=nullptr, node* p=nullptr): right{r}, left{l}, parent{p}, value{x} { /*std::cout << " (l-value 3) ";*/ }
 
-/*!
-	@brief Constructor for node in which right and left node are initialized to nullptr, parent to the input pointer to node and value to the input data x.
-	@tparam x rvalue reference.
-	@tparam p raw pointer to the parent node.
-*/
-	explicit node(T&& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{std::move(x)} { /*std::cout << " (r-value 2) ";*/ }
 
 /*!
 	@brief Constructor for node in which right, left and parent are inizialized to input pointer and value to the input data x.
@@ -71,10 +59,10 @@ struct node{
 	@tparam l pointer to the left node.
 	@tparam p pointer to the parent node.
 */
-	node(T&& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{std::move(x)} { /*std::cout << " (r-value 3) ";*/ }
+	node(T&& x, node* r=nullptr, node* l=nullptr, node* p=nullptr): right{r}, left{l}, parent{p}, value{std::move(x)} { /*std::cout << " (r-value 3) ";*/ }
 
 /*!
-	@brief Constructor for node, used by the copy constructor of bst.
+	@brief Copy constructor for node, used by the copy constructor of bst.
 	@brief Set the parent with the input pointer, copies the value and recursively calls itself on the left and right node.
 	@tparam x std::unique_ptr to node to be copied. 
 	@tparam p pointer to the parent node.
@@ -138,7 +126,7 @@ class bst{
 /*!
 	@brief This function inserts a new node in the tree, if not present. 
 	@brief It first checks if the key is already present, by means of the _find function, and if the pair is not present in the tree, it searches for the right place to insert it.
-	@tparam x<O> reference to the pair to be inserted.
+	@tparam x reference to the pair to be inserted.
 	@return std::pair<iterator,bool> iterator to the inserted node, true, or iterator to the already existing node, false.
 */
 	template <typename O>
@@ -344,7 +332,7 @@ class bst{
 
 /*!
 	@brief This function is used to balance the tree, by means of the _balance function.
-	@brief It first creates a vector containing the nodes pairs ordered by key values, clear the unalanced tree and then calls _balance on the nodes vector to generate a balanced tree.
+	@brief It first creates a vector containing the nodes pairs ordered by key values, clear the unbalanced tree and then calls _balance on the nodes vector to generate a balanced tree.
 */
 		void balance(){
 			std::vector<pair_type> nodes;
@@ -396,7 +384,7 @@ class bst{
 	@brief This function erases the content of the node with key equal to the input one, if present. 
 	@brief First of all, the function calls the _find function to check if the key is present or not in the tree. If not, the function returns. Then we might face three different situations, the node to be erased
 	has no left and right nodes, namely it is a leaf, it might have only one left or right node, or it has both left and right nodes. In all the situations, we need to check if the node to be erased is the root node and
-	release all the node ownerships, and in the latter two cases, we also need to reset the ownerships of the parent and left and/or right nodes.
+	release the node parent's ownership, and in the latter two cases, we also need to reset the ownership of the node to left and/or right nodes.
 	When the node to be erased has two children nodes, the function will call _inorder to find the first inorder successor, and then calls itself to erase the successor node, after having stored its value.
 	@tparam x const lvalue of the key to look for.
 */
