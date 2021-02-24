@@ -15,9 +15,9 @@ all: $(EXE)
 .PHONY: all
 
 %.x: %.cpp
-  $(CXX) $< -o $@ $(CXXFLAGS)
+	$(CXX) $< -o $@ $(CXXFLAGS)
 
 clean:
-  rm -f $(EXE) *~
+	rm -f $(EXE) *~
 
 .PHONY: clean
