@@ -388,7 +388,6 @@ class bst{
 			for(const auto& i: x) {
 				os << i.first << " ";
 			}
-			os << std::endl;
 			return os;
 		}
 
