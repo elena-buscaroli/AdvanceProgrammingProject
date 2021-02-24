@@ -30,21 +30,20 @@ void generate_tree(T& tree, size_t size) {
 
 template<typename T>
 void test(T& tree, size_t size, std::ofstream& f) {
-	f << size << '\t';
+	f << size;
 	auto c = 0;
 
-	auto start = std::chrono::high_resolution_clock::now();
-
-	for(size_t i=0; i<size; i++) {  // for each node in the tree
-		tree.find(i);
-		c++;
+	for(auto j=0; j<4; j++) {
+		auto start = std::chrono::high_resolution_clock::now();
+		for(size_t i=0; i<size; i++) {  // for each node in the tree
+			tree.find(i);
+			c++;
+		}
+		auto elapsed = std::chrono::high_resolution_clock::now() - start;
+		auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+		auto final = microseconds/(double)size;
+		f << '\t' << final;
 	}
-
-	auto elapsed = std::chrono::high_resolution_clock::now() - start;
-	auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-	auto final = microseconds/(double)size;
-
-	f << final << "\t";
 
 	f << std::endl;
 
