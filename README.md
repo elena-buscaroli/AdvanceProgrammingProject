@@ -18,4 +18,4 @@ DSSC 2020-2021
 * `python` contains:
   + `test_exam.py`: python script with the `reverse_dict(d)` function implementation and the test code
 
-* `report.pdf`: documentation of the two section of the project, c++ and python
+* `report.pdf`: documentation of the two sections of the project, c++ and python
