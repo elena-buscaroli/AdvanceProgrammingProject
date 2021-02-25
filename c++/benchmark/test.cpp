@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "bst.hpp"
+#include "../bst.hpp"
 
 template<typename T>
 void generate_tree(T& tree, size_t size) {
