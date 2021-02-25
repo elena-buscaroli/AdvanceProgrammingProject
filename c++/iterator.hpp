@@ -62,7 +62,7 @@ class _iterator {
 /*!
 	@brief Overloading of equality operator.
 	@tparam a reference to the first iterator.
-	@tparam b reference to the first iterator.
+	@tparam b reference to the second iterator.
 	@return Bool true if they point to the same node, false otherwise.
 */
 		friend bool operator==(_iterator &a, _iterator &b) { return a.current == b.current; }
@@ -71,7 +71,7 @@ class _iterator {
 /*!
 	@brief Overloading of inequality operator.
 	@tparam a reference to the first iterator.
-	@tparam b reference to the first iterator.
+	@tparam b reference to the second iterator.
 	@return Bool true if they point to different nodes, false otherwise.
 */
 		friend bool operator!=(_iterator &a, _iterator &b) { return !(a == b); }
