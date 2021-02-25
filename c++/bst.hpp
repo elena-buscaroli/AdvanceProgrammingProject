@@ -41,6 +41,13 @@ struct node{
 */
 	T value;
 
+/*!
+	@brief Constructor for node in which right and left are initialized to nullptr, parent to the input pointer to node and value to the input data x.
+	@tparam x const lvalue reference.
+	@tparam p raw pointer to the parent node.
+*/
+	explicit node(const T& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{x} { /*std::cout << " (l-value 2) ";*/ }
+
 
 /*!
 	@brief Constructor for node in which right, left and parent are inizialized to input pointer and value to the input data x.
@@ -49,7 +56,15 @@ struct node{
 	@tparam l pointer to the left node.
 	@tparam p pointer to the parent node.
 */
-	node(const T& x, node* r=nullptr, node* l=nullptr, node* p=nullptr): right{r}, left{l}, parent{p}, value{x} { /*std::cout << " (l-value 3) ";*/ }
+	node(const T& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{x} { /*std::cout << " (l-value 3) ";*/ }
+
+
+/*!
+	@brief Constructor for node in which right and left node are initialized to nullptr, parent to the input pointer to node and value to the input data x.
+	@tparam x rvalue reference.
+	@tparam p raw pointer to the parent node.
+*/
+	explicit node(T&& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{std::move(x)} { /*std::cout << " (r-value 2) ";*/ }
 
 
 /*!
@@ -59,7 +74,7 @@ struct node{
 	@tparam l pointer to the left node.
 	@tparam p pointer to the parent node.
 */
-	node(T&& x, node* r=nullptr, node* l=nullptr, node* p=nullptr): right{r}, left{l}, parent{p}, value{std::move(x)} { /*std::cout << " (r-value 3) ";*/ }
+	node(T&& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{std::move(x)} { /*std::cout << " (r-value 3) ";*/ }
 
 /*!
 	@brief Copy constructor for node, used by the copy constructor of bst.
