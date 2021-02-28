@@ -356,24 +356,24 @@ class bst{
 
 /*!
 	@brief Overloaded operator that search the key to return corresponding associated value. 
-	@brief If the key is not present in the tree, it inserts a node with that key and as value a random value_type.
+	@brief If the key is not present in the tree, it inserts a node with that key and as value the default value of the value_type.
 	@tparam x const lvalue reference to key.
 	@return lvalue reference to the value mapped by the key.
 */
 		value_type& operator[](const key_type& x) {
-			value_type v;
+			value_type v{};
 			auto i = insert(std::pair<key_type,value_type>(x, v));
 			return (*i.first).second;
 		 }
 
 /*!
 	@brief Overloaded operator that search the key to return corresponding associated value. 
-	@brief If the key is not present in the tree, it inserts a node with that key and as value a random value_type.
+	@brief If the key is not present in the tree, it inserts a node with that key and as value the default value of the value_type.
 	@tparam x rvalue reference to key.
 	@return lvalue reference to the value mapped by the key.
 */
 		value_type& operator[](key_type&& x) {
-			value_type v;
+			value_type v{};
 			auto i = insert(std::pair<key_type,value_type>(x, v));
 			return (*i.first).second;
 		 }
@@ -407,74 +407,74 @@ class bst{
 
 template < typename value_type, typename key_type, typename cmp_op >
 void bst<value_type,key_type,cmp_op>::erase(const key_type& x){
-			node_t* n{_find(x)};
-			if(!n) { return; }
+	node_t* n{_find(x)};
+	if(!n) { return; }
 
-			if( !(n->left) && !(n->right) ) { 
-				if( !(n == root.get()) ) {
-					if( n == n->parent->left.get() ) { n->parent->left.reset(); }
-					else { n->parent->right.reset(); }
-				}
-				else { root.reset(); }
+	if( !(n->left) && !(n->right) ) { 
+		if( !(n == root.get()) ) {
+			if( n == n->parent->left.get() ) { n->parent->left.reset(); }
+			else { n->parent->right.reset(); }
+		}
+		else { root.reset(); }
+	}
+
+	else if( n->left && n->right ) {
+		node_t* in = _inorder(n->right.get());
+		auto v = in->value;
+		bool left = false;
+		erase(v.first);
+
+		if( n == root.get() ) {
+			n = new node_t{v, n->right.release(), n->left.release(), n->parent};
+			root.reset(n);
+			if(n->left) { n->left->parent = n; }
+			if(n->right) { n->right->parent = n; }
+		}
+		else {
+			if( n->parent->left.get() == n ) { left = true; }
+			n = new node_t{v, n->right.release(), n->left.release(), n->parent};
+			if(n->left) { n->left->parent = n; }
+			if(n->right) { n->right->parent = n; }
+
+			if( left ) { n->parent->left.reset(n); }
+			else { n->parent->right.reset(n); }
+		}
+	}
+
+	else { 
+		if( n == root.get() ) {
+			if(n->right) {
+				n->right->parent = nullptr;
+				root.reset(n->right.release());
 			}
-
-			else if( n->left && n->right ) {
-				node_t* in = _inorder(n->right.get());
-				auto v = in->value;
-				bool left = false;
-				erase(v.first);
-
-				if( n == root.get() ) {
-					n = new node_t{v, n->right.release(), n->left.release(), n->parent};
-					root.reset(n);
-					if(n->left) { n->left->parent = n; }
-					if(n->right) { n->right->parent = n; }
-				}
-				else {
-					if( n->parent->left.get() == n ) { left = true; }
-					n = new node_t{v, n->right.release(), n->left.release(), n->parent};
-					if(n->left) { n->left->parent = n; }
-					if(n->right) { n->right->parent = n; }
-
-					if( left ) { n->parent->left.reset(n); }
-					else { n->parent->right.reset(n); }
-				}
+			else {
+				n->left->parent = nullptr;
+				root.reset(n->left.release());
 			}
-
-			else { 
-				if( n == root.get() ) {
-					if(n->right) {
-						n->right->parent = nullptr;
-						root.reset(n->right.release());
-					}
-					else {
-						n->left->parent = nullptr;
-						root.reset(n->left.release());
-					}
+		}
+		else {
+			if( n->parent->left.get() == n ) {
+				if( n->left ) { 
+					n->left->parent = n->parent;
+					n->parent->left.reset(n->left.release()); 
 				}
-				else {
-					if( n->parent->left.get() == n ) {
-						if( n->left ) { 
-							n->left->parent = n->parent;
-							n->parent->left.reset(n->left.release()); 
-						}
-						else { 
-							n->right->parent = n->parent;
-							n->parent->left.reset(n->right.release());
-						}
-					}
-					else {
-						if( n->left ) { 
-							n->left->parent = n->parent;
-							n->parent->right.reset(n->left.release()); 
-						}
-						else { 
-							n->right->parent = n->parent;
-							n->parent->right.reset(n->right.release()); 
-						}
-					}
+				else { 
+					n->right->parent = n->parent;
+					n->parent->left.reset(n->right.release());
 				}
 			}
+			else {
+				if( n->left ) { 
+					n->left->parent = n->parent;
+					n->parent->right.reset(n->left.release()); 
+				}
+				else { 
+					n->right->parent = n->parent;
+					n->parent->right.reset(n->right.release()); 
+				}
+			}
+		}
+	}
 }
 
 
