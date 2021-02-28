@@ -42,7 +42,7 @@ class _iterator {
 		explicit _iterator(node_t* p) : current{p} {}
 
 /*!
-	@brief Default deconstructor of _iterator object.
+	@brief Default destructor of _iterator object.
 */
 		~_iterator() noexcept = default;
 
@@ -83,7 +83,7 @@ class _iterator {
 	@return Reference to the iterator.
 */
 		_iterator &operator++() {
-			if(current->right) { //if !=nullptr 
+			if(current->right) {
 				current = current->right.get();
 				while(current->left){
 					current = current->left.get();
