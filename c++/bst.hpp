@@ -46,7 +46,7 @@ struct node{
 	@tparam x const lvalue reference.
 	@tparam p raw pointer to the parent node.
 */
-	explicit node(const T& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{x} { /*std::cout << " (l-value 2) ";*/ }
+	explicit node(const T& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{x} {}
 
 
 /*!
@@ -56,7 +56,7 @@ struct node{
 	@tparam l pointer to the left node.
 	@tparam p pointer to the parent node.
 */
-	node(const T& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{x} { /*std::cout << " (l-value 3) ";*/ }
+	node(const T& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{x} {}
 
 
 /*!
@@ -64,7 +64,7 @@ struct node{
 	@tparam x rvalue reference.
 	@tparam p raw pointer to the parent node.
 */
-	explicit node(T&& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{std::move(x)} { /*std::cout << " (r-value 2) ";*/ }
+	explicit node(T&& x, node* p=nullptr): right{nullptr}, left{nullptr}, parent{p}, value{std::move(x)} {}
 
 
 /*!
@@ -74,7 +74,7 @@ struct node{
 	@tparam l pointer to the left node.
 	@tparam p pointer to the parent node.
 */
-	node(T&& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{std::move(x)} { /*std::cout << " (r-value 3) ";*/ }
+	node(T&& x, node* r, node* l, node* p=nullptr): right{r}, left{l}, parent{p}, value{std::move(x)} {}
 
 /*!
 	@brief Copy constructor for node, used by the copy constructor of bst.
@@ -91,7 +91,7 @@ struct node{
 	}
 
 /*!
-	@brief Default deconstructor.
+	@brief Default destructor.
 */
 	~node() noexcept = default;
 };
@@ -101,12 +101,10 @@ struct node{
 
 template < typename value_type, typename key_type, typename cmp_op=std::less<key_type> >
 class bst{
-	
 	using pair_type = std::pair< const key_type, value_type >;
 	using node_t = node< pair_type >;
 	using iterator = _iterator< node_t , pair_type > ;
 	using const_iterator = _iterator< node_t , const pair_type > ;
-
 
 /*!
 	@brief Definition of the unique pointer to the root node of the tree.
@@ -150,23 +148,23 @@ class bst{
 		if (n) { return std::make_pair(iterator{n}, false); }
 
 		auto tmp = root.get();
-		while(tmp) {  //(op(tmp->value.first, x.first) || op(x.first,tmp->value.first)){ 
-			if( op(tmp->value.first, x.first) ){ //my key > root
+		while(tmp) { 
+			if( op(tmp->value.first, x.first) ){ 
 				if (tmp->right) { tmp = tmp->right.get(); }
 				else {
-					tmp->right = std::make_unique<node_t> (std::forward<O>(x), tmp); //tmp is the parent
+					tmp->right = std::make_unique<node_t> (std::forward<O>(x), tmp); 
 					return std::make_pair(iterator{tmp->right.get()}, true); 
 				}
 			}
-			if( op(x.first,tmp->value.first) ){ //my key < root 
+			if( op(x.first,tmp->value.first) ){
 				if(tmp->left){ tmp = tmp->left.get(); }
 				else{
-					tmp->left = std::make_unique<node_t> (std::forward<O>(x), tmp); //tmp is the parent
+					tmp->left = std::make_unique<node_t> (std::forward<O>(x), tmp);
 					return std::make_pair(iterator{tmp->left.get()}, true); 
 				}
 			}
 		}
-		root = std::make_unique<node_t> (std::forward<O>(x), nullptr); //qui il parent sarebbe nullptr
+		root = std::make_unique<node_t> (std::forward<O>(x), nullptr);
 		return std::make_pair(iterator{root.get()}, true);
 	}
 
@@ -208,7 +206,7 @@ class bst{
 
 
 /*!
-	@brief Default deconstructor for the bst class.
+	@brief Default destructor for the bst class.
 */
 		~bst() noexcept = default;
 
@@ -364,7 +362,7 @@ class bst{
 */
 		value_type& operator[](const key_type& x) {
 			value_type v;
-			auto i = insert(std::pair<key_type,value_type>(x, v)); // iterator pointing to node + bool 
+			auto i = insert(std::pair<key_type,value_type>(x, v));
 			return (*i.first).second;
 		 }
 
@@ -376,7 +374,7 @@ class bst{
 */
 		value_type& operator[](key_type&& x) {
 			value_type v;
-			auto i = insert(std::pair<key_type,value_type>(x, v)); // iterator pointing to node + bool 
+			auto i = insert(std::pair<key_type,value_type>(x, v));
 			return (*i.first).second;
 		 }
 
@@ -403,11 +401,16 @@ class bst{
 	When the node to be erased has two children nodes, the function will call _inorder to find the first inorder successor, and then calls itself to erase the successor node, after having stored its value.
 	@tparam x const lvalue of the key to look for.
 */
-		void erase(const key_type& x) {
+		void erase(const key_type& x);
+}; 
+
+
+template < typename value_type, typename key_type, typename cmp_op >
+void bst<value_type,key_type,cmp_op>::erase(const key_type& x){
 			node_t* n{_find(x)};
 			if(!n) { return; }
 
-			if( !(n->left) && !(n->right) ) { // std::cout << "LEAF NODE" << std::endl;
+			if( !(n->left) && !(n->right) ) { 
 				if( !(n == root.get()) ) {
 					if( n == n->parent->left.get() ) { n->parent->left.reset(); }
 					else { n->parent->right.reset(); }
@@ -415,7 +418,7 @@ class bst{
 				else { root.reset(); }
 			}
 
-			else if( n->left && n->right ) { // std::cout << "TWO CHILDREN NODES" << std::endl;
+			else if( n->left && n->right ) {
 				node_t* in = _inorder(n->right.get());
 				auto v = in->value;
 				bool left = false;
@@ -438,7 +441,7 @@ class bst{
 				}
 			}
 
-			else { // std::cout << "ONLY ONE CHILD NODE" << std::endl;
+			else { 
 				if( n == root.get() ) {
 					if(n->right) {
 						n->right->parent = nullptr;
@@ -472,7 +475,7 @@ class bst{
 					}
 				}
 			}
-		}
-}; // end bst class
+}
+
 
 #endif
