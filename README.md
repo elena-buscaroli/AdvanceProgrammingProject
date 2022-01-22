@@ -1,4 +1,4 @@
-# Advance Programming Project - Binary Search Tree
+# Advanced Programming Project - Binary Search Tree
 Buscaroli Elena - Valeriani Lucrezia 
 
 DSSC 2020-2021
